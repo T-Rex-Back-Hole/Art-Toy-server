@@ -1,4 +1,4 @@
-import User from "../../models/User";
+import user from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -8,7 +8,7 @@ const registerUser = async (req, res) => {
   const { userName, email, password } = req.body;
 
   try {
-    const checkUser = await User.findOne({ email });
+    const checkUser = await user.findOne({ email });
     if (checkUser)
       return res.json({
         success: false,
@@ -16,7 +16,7 @@ const registerUser = async (req, res) => {
       });
 
     const hashPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({
+    const newUser = new user({
       userName,
       email,
       password: hashPassword,
@@ -40,7 +40,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const checkUser = await User.findOne({ email });
+    const checkUser = await user.findOne({ email });
     if (!checkUser)
       return res.json({
         success: false,
@@ -114,4 +114,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, logoutUser, authMiddleware };
+export { registerUser, loginUser, logoutUser, authMiddleware };

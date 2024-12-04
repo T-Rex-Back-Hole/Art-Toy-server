@@ -4,7 +4,7 @@ import {
   loginUser,
   logoutUser,
   authMiddleware,
-} from "../../controllers/auth/auth-controller.js";
+} from "./auth-controller.js";
 
 const router = express.Router();
 
@@ -20,4 +20,4 @@ router.get("/check-auth", authMiddleware, (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
