@@ -1,7 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import authRouter from "./auth/auth-routes.js";
+import authRouter from "./middleware/auth-routes.js";
 import connectDB from "./config/mongodb.js";
 // Connect to MongoDB
 connectDB();
