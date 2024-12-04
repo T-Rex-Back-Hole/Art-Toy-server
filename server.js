@@ -1,30 +1,33 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
-const authRouter = require("./routes/auth/auth-routes");
-const dotenv = require("dotenv");
+import express from "express";
+import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import authRouter from "./routes/auth/auth-routes.js";
+import dotenv from "dotenv";
 
-// dotenv.config({path: './.env'})
+// Correcting the typo
+dotenv.config();
 
-// const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
-// mongoose.connect(DB).then(() =>{
-//   console.log('DB Connections Successful!')
-// }).catch((error) => console.log(error));
+const DB = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
 
+// Connect to MongoDB
 mongoose
-  .connect(
-    "mongodb+srv://trexblackhole:trexblackhole1234@cluster0.eiyfe.mongodb.net/"
-  )
-  .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+  .connect(DB)
+  .then(() => {
+    console.log("MongoDB Connection Successful!");
+  })
+  .catch((error) => console.log("Failed to connect MongoDB:", error));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173", // Your frontend origin
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
@@ -33,12 +36,13 @@ app.use(
       "Expires",
       "Pragma",
     ],
-    credentials: true,
+    credentials: true, // Allow cookies
   })
 );
 
-app.use(cookieParser());
-app.use(express.json());
-app.use("/api/auth", authRouter);
+app.use(cookieParser()); // Parse cookies
+app.use(express.json()); // Parse incoming JSON
+app.use("/api/auth", authRouter); // Use authRouter for authentication routes
 
+// Start the server
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
