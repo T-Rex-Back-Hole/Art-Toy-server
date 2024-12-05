@@ -1,73 +1,68 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import Client from "../models/Client.js";
+import Client from '../models/client.js';
+import jwt from 'jsonwebtoken';
 
-export const registerClient = async (req, res) => {
-  const { name, email, password } = req.body;
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+};
+
+export const register = async (req, res) => {
   try {
-    const existingClient = await Client.findOne({ email });
-    if (existingClient) {
-      return res.status(400).json({
-        success: false,
-        message: "Client already exists with this email.",
-      });
-    }
+    const newClient = await Client.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password
+    });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newClient = new Client({ name, email, password: hashedPassword });
-    await newClient.save();
+    const token = signToken(newClient._id);
 
     res.status(201).json({
-      success: true,
-      message: "Client registered successfully.",
-      client: {
-        id: newClient._id,
-        name: newClient.name,
-        email: newClient.email,
-      },
+      status: 'success',
+      token,
+      data: {
+        client: newClient
+      }
     });
-  } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ success: false, message: "Registration failed." });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message
+    });
   }
 };
 
-export const loginClient = async (req, res) => {
-  const { email, password } = req.body;
+export const login = async (req, res) => {
   try {
-    const client = await Client.findOne({ email });
-    if (!client) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email not found." });
-    }
+    const { email, password } = req.body;
 
-    const isMatch = await bcrypt.compare(password, client.password);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials." });
-    }
-
-    const token = jwt.sign(
-      { id: client._id, email: client.email },
-      process.env.CLIENT_SECRET_KEY,
-      {
-        expiresIn: "1h",
-      }
-    );
-
-    res
-      .cookie("token", token, { httpOnly: true, secure: false })
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successful.",
-        client: { id: client._id, name: client.name, email: client.email },
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'กรุณากรอกอีเมลและรหัสผ่าน'
       });
-  } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ success: false, message: "Login failed." });
+    }
+
+    const client = await Client.findOne({ email }).select('+password');
+
+    if (!client || !(await client.correctPassword(password, client.password))) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+      });
+    }
+
+    const token = signToken(client._id);
+
+    res.status(200).json({
+      status: 'success',
+      token
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message
+    });
   }
 };
 

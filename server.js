@@ -5,21 +5,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import clientRouter from "./routes/clientRoutes.js";
 
-<<<<<<< HEAD
-dotenv.config({path: './.env'})
-
-/*const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD).replace('<USERNAME>', process.env.DATABASE_USERNAME);
-mongoose.connect(DB).then(() =>{
-console.log('DB Connections Successful!')
-}).catch((error) => console.log(error));*/
-
-mongoose
-  .connect(
-    process.env.DATABASE
-  )
-  .then(() => console.log("MongoDB connected Successful!"))
-  .catch((error) => console.log(error));
-=======
 dotenv.config({ path: "./.env" });
 
 const DB = process.env.DATABASE.replace(
@@ -31,7 +16,6 @@ mongoose
   .connect(DB)
   .then(() => console.log("DB Connection Successful!"))
   .catch((error) => console.log("DB Connection Error:", error));
->>>>>>> 27cd971c0462281588dc58a56864f53ff94fc670
 
 const app = express();
 const PORT = process.env.PORT || 5000;
