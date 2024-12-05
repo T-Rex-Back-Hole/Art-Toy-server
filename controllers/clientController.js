@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-
 export const registerClient = async (req, res) => {
   const { userName, email, password, role } = req.body;
   const assignedRole = role && ["admin", "user"].includes(role) ? role : "user";
@@ -48,7 +47,7 @@ export const registerClient = async (req, res) => {
 };
 
 export const loginClient = async (req, res) => {
-  const { email, password, } = req.body;
+  const { email, password } = req.body;
   try {
     // Find the user by email
     const client = await User.findOne({ email });
