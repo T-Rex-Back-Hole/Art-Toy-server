@@ -52,4 +52,5 @@ app.use("/admin", adminRouter)
 // app.use("/api/auth", authRouter);
 // app.use("/api/admin/products", adminProductsRouter);
 
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT} 😎 😎 😎 `));
