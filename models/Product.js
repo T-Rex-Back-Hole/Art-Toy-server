@@ -1,17 +1,19 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
-    name: String,
+const productSchema = new mongoose.Schema(
+  {
+    name: Array,
     price: Number,
     image: String,
     category: String,
     materials: String,
     product_type: String,
     description: String,
-
-
-
-},{timestamps:true}
+  },
+  { timestamps: true }
 );
 
-module.exports = mongoose.model("Product",ProductSchema);
+const productModel =
+  mongoose.model.product || mongoose.model("product", productSchema);
+
+export default productModel;
