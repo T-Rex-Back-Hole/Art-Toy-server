@@ -3,9 +3,12 @@ import connectDB from "./config/mongodb.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import clientRouter from "./routes/clientRoutes.js";
+import dotenv from "dotenv";
+
+// Routes
 import productRouter from "./routes/productRoutes.js";
 import adminProductsRouter from "./routes/admin/products-routes.js";
-import dotenv from "dotenv"
+import adminRouter from "./routes/admin/loginAdmin.js";
 
 dotenv.config();
 
@@ -38,13 +41,14 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-
+// login User
 app.use("/client", clientRouter);
 //All Product
 app.use("/products", productRouter);
 // admin product
 app.use("/adminProducts", adminProductsRouter);
-
+// admin login
+app.use("/admin", adminRouter)
 // app.use("/api/auth", authRouter);
 // app.use("/api/admin/products", adminProductsRouter);
 
