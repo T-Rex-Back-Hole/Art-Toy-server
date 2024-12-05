@@ -33,5 +33,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/client", clientRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/admin/products",adminProductsRouter)
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
