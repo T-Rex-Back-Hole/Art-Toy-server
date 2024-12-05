@@ -8,7 +8,7 @@ const createToken = (id) => {
 };
 
 // Route for user login
-const loginUser = async (req, res) => {
+const loginClient = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
@@ -68,7 +68,7 @@ const registerUser = async (req, res) => {
 };
 
 // Route for admin login
-const adminLogin = async (req, res) => {
+const clientLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (
@@ -86,4 +86,4 @@ const adminLogin = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, adminLogin };
+export { loginClient, registerUser, clientLogin };
