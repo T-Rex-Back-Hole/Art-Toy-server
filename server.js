@@ -14,7 +14,7 @@ const DB = process.env.DATABASE.replace(
 
 mongoose
   .connect(DB)
-  .then(() => console.log("DB Connection Successful!"))
+  .then(() => console.log("DB Connection Successful! ✅ 😎👍"))
   .catch((error) => console.log("DB Connection Error:", error));
 
 const app = express();
@@ -34,4 +34,4 @@ app.use(express.json());
 
 app.use("/api/client", clientRouter);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT} ✅ 😎`));
