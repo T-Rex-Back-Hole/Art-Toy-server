@@ -31,7 +31,10 @@ export const registerClient = async (req, res) => {
     // Save the client to the database
     await newClient.save();
 
+
+    // ส่งข้อมูลตอบกลับพร้อม token
     res.status(201).json({
+
       success: true,
       message: "Client registered successfully.",
       client: {
@@ -40,12 +43,11 @@ export const registerClient = async (req, res) => {
         email: newClient.email,
         role: newClient.role,
       },
+
     });
-  } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ success: false, message: "Registration failed." });
   }
 };
+
 
 export const loginClient = async (req, res) => {
   const { email, password, } = req.body;
@@ -58,20 +60,18 @@ export const loginClient = async (req, res) => {
         .json({ success: false, message: "Email not found." });
     }
 
-    const isMatch = await bcrypt.compare(password, client.password);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials." });
+
+    // 1) ตรวจสอบว่ามีการส่งอีเมลและรหัสผ่านมาหรือไม่
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'กรุณากรอกอีเมลและรหัสผ่าน'
+      });
     }
 
-    const token = jwt.sign(
-      { id: client._id, email: client.email },
-      process.env.CLIENT_SECRET_KEY,
-      {
-        expiresIn: "1h",
-      }
-    );
+    // 2) ค้นหา client จากอีเมล และดึงฟิลด์ password มาด้วย
+    // (ปกติฟิลด์ password จะถูกซ่อนไว้ ต้องใช้ select('+password'))
+    const client = await Client.findOne({ email }).select('+password');
 
     res
       .cookie("token", token, { httpOnly: true, secure: false }) // `secure: true` for HTTPS production
@@ -84,16 +84,31 @@ export const loginClient = async (req, res) => {
           userName: client.userName,
           email: client.email,
         },
+
       });
-  } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ success: false, message: "Login failed." });
+    }
+
+    // 4) ถ้าทุกอย่างถูกต้อง สร้าง token และส่งกลับ
+    const token = signToken(client._id);
+    res.status(200).json({
+      status: 'success',
+      token
+    });
+  } catch (err) {
+    // จัดการข้อผิดพลาดที่อาจเกิดขึ้น
+    res.status(400).json({
+      status: 'fail',
+      message: err.message
+    });
   }
 };
 
+// Controller สำหรับการออกจากระบบ
 export const logoutClient = (req, res) => {
+  // ลบ cookie token และส่งข้อความยืนยัน
   res
     .clearCookie("token")
     .status(200)
+
     .json({ success: true, message: "Logout successful.😎 😎 😎" });
 };

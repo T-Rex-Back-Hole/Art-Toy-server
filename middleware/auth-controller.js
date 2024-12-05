@@ -1,11 +1,14 @@
-import Client from "../models/Client";
+import Client from "../models/client.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// Controller สำหรับการลงทะเบียน client ใหม่
 const registerClient = async (req, res) => {
+  // รับข้อมูลจาก request body
   const { name, email, password } = req.body;
 
   try {
+    // ตรวจสอบว่ามีอีเมลนี้ในระบบแล้วหรือไม่
     const checkClient = await Client.findOne({ email });
     if (checkClient)
       return res.json({
@@ -13,13 +16,20 @@ const registerClient = async (req, res) => {
         message: "Client Already exists with the same email! Please try again",
       });
 
+    // เข้ารหัสรหัสผ่านด้วย bcrypt ที่ความซับซ้อน 12
     const hashPassword = await bcrypt.hash(password, 12);
+    
+    // สร้าง client ใหม่
     const newClient = new Client({
       name,
       email,
       password: hashPassword,
     });
+    
+    // บันทึกลงฐานข้อมูล
     await newClient.save();
+    
+    // ส่งผลลัพธ์กลับ
     res.status(200).json({
       success: true,
       message: "Registration successful",
@@ -33,10 +43,13 @@ const registerClient = async (req, res) => {
   }
 };
 
+// Controller สำหรับการเข้าสู่ระบบ
 const loginClient = async (req, res) => {
+  // รับข้อมูลจาก request body
   const { email, password } = req.body;
 
   try {
+    // ค้นหา client จากอีเมล
     const checkClient = await Client.findOne({ email });
     if (!checkClient)
       return res.json({
@@ -44,6 +57,7 @@ const loginClient = async (req, res) => {
         message: "Client doesn't exist! Please register first",
       });
 
+    // ตรวจสอบรหัสผ่าน
     const checkPasswordMatch = await bcrypt.compare(
       password,
       checkClient.password
@@ -54,15 +68,17 @@ const loginClient = async (req, res) => {
         message: "Incorrect password! Please try again",
       });
 
+    // สร้าง JWT token
     const token = jwt.sign(
       {
         id: checkClient._id,
         email: checkClient.email,
       },
       process.env.CLIENT_SECRET_KEY,
-      { expiresIn: "60m" }
+      { expiresIn: "60m" } // token หมดอายุใน 60 นาที
     );
 
+    // ส่ง token กลับในรูปแบบ cookie และข้อมูล response
     res.cookie("token", token, { httpOnly: true, secure: false }).json({
       success: true,
       message: "Logged in successfully",
@@ -80,14 +96,18 @@ const loginClient = async (req, res) => {
   }
 };
 
+// Controller สำหรับการออกจากระบบ
 const logoutClient = (req, res) => {
+  // ลบ token cookie และส่งข้อความยืนยัน
   res.clearCookie("token").json({
     success: true,
     message: "Logged out successfully!",
   });
 };
 
+// Middleware สำหรับตรวจสอบการยืนยันตัวตน
 const authMiddleware = async (req, res, next) => {
+  // ดึง token จาก cookie
   const token = req.cookies.token;
   if (!token)
     return res.status(401).json({
@@ -96,8 +116,11 @@ const authMiddleware = async (req, res, next) => {
     });
 
   try {
+    // ตรวจสอบความถูกต้องของ token
     const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
+    // เพิ่มข้อมูล client ใน request object
     req.client = decoded;
+    // ดำเนินการต่อไปยัง middleware ถัดไป
     next();
   } catch (error) {
     res.status(401).json({
