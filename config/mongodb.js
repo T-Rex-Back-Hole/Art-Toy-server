@@ -10,12 +10,12 @@ const DB = process.env.DATABASE.replace(
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(`${DB}/test`);
     mongoose.connection.on("connected", () => {
       console.log("Connected to MongoDB ✅");
     });
+    await mongoose.connect(`${DB}`);
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error.message);
+    console.error("Error connecting to MongoDB ❌", error.message);
   }
 };
 

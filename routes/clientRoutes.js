@@ -5,10 +5,10 @@ import {
   logoutClient,
 } from "../controllers/clientController.js";
 
-const router = express.Router();
+const clientRouter = express.Router();
 
-router.post("/register", registerClient);
-router.post("/login", loginClient);
-router.post("/logout", logoutClient);
+clientRouter.post("/register", registerClient);
+clientRouter.post("/login", loginClient);
+clientRouter.post("/logout", logoutClient);
 
-export default router;
+export default clientRouter;
