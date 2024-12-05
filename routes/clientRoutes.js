@@ -1,9 +1,14 @@
 import express from "express";
-import { register, login } from "../controllers/clientController.js";
+import {
+  registerClient,
+  loginClient,
+  logoutClient,
+} from "../controllers/clientController.js";
 
-const router = express.Router();
+const clientRouter = express.Router();
 
-router.post("/register", register);
-router.post("/login", login);
+clientRouter.post("/register", registerClient);
+clientRouter.post("/login", loginClient);
+clientRouter.post("/logout", logoutClient);
 
-export default router;
+export default clientRouter;
