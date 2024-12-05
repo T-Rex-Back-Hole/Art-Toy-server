@@ -16,8 +16,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: [8],
-    select: false,
+    // minlength: [8],
+    // select: false,
   },
   createdAt: {
     type: Date,
@@ -33,14 +33,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["admin", "user"],
   },
-  address: {
-    fullname: { type: String, required: true },
-    phoneNumber: { type: String, required: true },
-    province: { type: String, required: true },
-    subDistrict: { type: String, required: true },
-    district: { type: String, required: true },
-    postal: { type: String, required: true },
-  },
+  // address: {
+  //   fullname: { type: String, required: true },
+  //   phoneNumber: { type: String, required: true },
+  //   province: { type: String, required: true },
+  //   subDistrict: { type: String, required: true },
+  //   district: { type: String, required: true },
+  //   postal: { type: String, required: true },
+  // },
 });
 
 const userModel = mongoose.model("user", userSchema);
