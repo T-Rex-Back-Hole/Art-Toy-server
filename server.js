@@ -3,20 +3,20 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const authRouter = require("./routes/auth/auth-routes");
+const clientRouter = require("./routes/auth/clientRouter");
 const dotenv = require("dotenv");
 
-// dotenv.config({path: './.env'})
+dotenv.config({ path: "./.env" });
 
-// const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
-// mongoose.connect(DB).then(() =>{
-//   console.log('DB Connections Successful!')
-// }).catch((error) => console.log(error));
-
+const DB = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
 mongoose
-  .connect(
-    "mongodb+srv://trexblackhole:trexblackhole1234@cluster0.eiyfe.mongodb.net/"
-  )
-  .then(() => console.log("MongoDB connected"))
+  .connect(DB)
+  .then(() => {
+    console.log("DB Connections Successful!");
+  })
   .catch((error) => console.log(error));
 
 const app = express();
@@ -40,5 +40,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use("/api/auth", authRouter);
+app.use("/api/client", clientRouter);
 
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
