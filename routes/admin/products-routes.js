@@ -1,23 +1,26 @@
-import express from 'express';
+import express from "express";
+import { upload } from "../../config/cloudinary.js";
 
-const {
-    handleImageUpload,
-    addProduct,
-    fetchAllProducts,
-    editProduct,
-    deleteProduct,
-getFilteredProducts,} = require('../../controllers/admin/products-controller');
+import {
+  handleImageUpload,
+  addProduct,
+  fetchAllProducts,
+  editProduct,
+  deleteProduct,
+  getFilteredProducts,
+} from "../../controllers/admin/products-controller.js";
 
-const {upload} = require('../../helpers/cloudinary');
+const adminProductsRouter = express.Router();
 
-const router = express.Router();
+adminProductsRouter.post(
+  "/upload-image",
+  upload.single("my_file"),
+  handleImageUpload
+);
+adminProductsRouter.post("/add", addProduct);
+adminProductsRouter.put("/edit/:id", editProduct);
+adminProductsRouter.delete("/delete/:id", deleteProduct);
+adminProductsRouter.get("/get", fetchAllProducts);
+adminProductsRouter.get("/get/filtered", getFilteredProducts);
 
-router.post('/upload-image',upload.single("my_file"),handleImageUpload);
-router.post("/add", addProduct);
-router.put("/edit/:id", editProduct);
-router.delete("/delete/:id", deleteProduct);
-router.get("/get", fetchAllProducts);
-router.get("/get/filtered", getFilteredProducts);
-
-
-export default router;
+export default adminProductsRouter;

@@ -6,6 +6,6 @@ const clientSchema = new mongoose.Schema({
   password: { type: String, required: true },
 });
 
-const Client = mongoose.model("Client", clientSchema);
+const Client = mongoose.model("client", clientSchema);
 
 export default Client;
