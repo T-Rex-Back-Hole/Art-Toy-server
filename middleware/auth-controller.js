@@ -1,27 +1,25 @@
-import user from "../models/user.js";
+import Client from "../models/Client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-//register
-
-const registerUser = async (req, res) => {
-  const { userName, email, password } = req.body;
+const registerClient = async (req, res) => {
+  const { name, email, password } = req.body;
 
   try {
-    const checkUser = await user.findOne({ email });
-    if (checkUser)
+    const checkClient = await Client.findOne({ email });
+    if (checkClient)
       return res.json({
         success: false,
-        message: "User Already exists with the same email! Please try again",
+        message: "Client Already exists with the same email! Please try again",
       });
 
     const hashPassword = await bcrypt.hash(password, 12);
-    const newUser = new user({
-      userName,
+    const newClient = new Client({
+      name,
       email,
       password: hashPassword,
     });
-    await newUser.save();
+    await newClient.save();
     res.status(200).json({
       success: true,
       message: "Registration successful",
@@ -30,25 +28,25 @@ const registerUser = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
 
-//login
-const loginUser = async (req, res) => {
+const loginClient = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const checkUser = await user.findOne({ email });
-    if (!checkUser)
+    const checkClient = await Client.findOne({ email });
+    if (!checkClient)
       return res.json({
         success: false,
-        message: "User doesn't exists! Please register first",
+        message: "Client doesn't exist! Please register first",
       });
+
     const checkPasswordMatch = await bcrypt.compare(
       password,
-      checkUser.password
+      checkClient.password
     );
     if (!checkPasswordMatch)
       return res.json({
@@ -58,60 +56,55 @@ const loginUser = async (req, res) => {
 
     const token = jwt.sign(
       {
-        id: checkUser._id,
-        role: checkUser.role,
-        email: checkUser.email,
+        id: checkClient._id,
+        email: checkClient.email,
       },
-      "CLIENT_SECRET_KEY",
+      process.env.CLIENT_SECRET_KEY,
       { expiresIn: "60m" }
     );
 
     res.cookie("token", token, { httpOnly: true, secure: false }).json({
       success: true,
       message: "Logged in successfully",
-      user: {
-        email: checkUser.email,
-        role: checkUser.role,
-        id: checkUser._id,
+      client: {
+        email: checkClient.email,
+        id: checkClient._id,
       },
     });
   } catch (e) {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
 
-// logout
-
-const logoutUser = (req, res) => {
+const logoutClient = (req, res) => {
   res.clearCookie("token").json({
     success: true,
     message: "Logged out successfully!",
   });
 };
 
-//auth middleware
 const authMiddleware = async (req, res, next) => {
   const token = req.cookies.token;
   if (!token)
     return res.status(401).json({
       success: false,
-      message: "Unauthorised user!",
+      message: "Unauthorized user!",
     });
 
   try {
-    const decoded = jwt.verify(token, "CLIENT_SECRET_KEY");
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
+    req.client = decoded;
     next();
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: "Unauthorised user!",
+      message: "Unauthorized user!",
     });
   }
 };
 
-export { registerUser, loginUser, logoutUser, authMiddleware };
+export { registerClient, loginClient, logoutClient, authMiddleware };

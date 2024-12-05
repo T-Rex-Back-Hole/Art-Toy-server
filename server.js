@@ -1,51 +1,37 @@
 import express from "express";
+import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import authRouter from "./middleware/auth-routes.js";
-import connectDB from "./config/mongodb.js";
-import products from "./routes/productRoutes.js"
-import cart from "./routes/cartRoutes.js"
-// Connect to MongoDB
-connectDB();
+import dotenv from "dotenv";
+import clientRouter from "./routes/clientRoutes.js";
+
+dotenv.config({ path: "./.env" });
+
+const DB = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
+
+mongoose
+  .connect(DB)
+  .then(() => console.log("DB Connection Successful!"))
+  .catch((error) => console.log("DB Connection Error:", error));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "https://admin-test-deploy.vercel.app",
-  "https://test-user-deploy.vercel.app",
-  "http://localhost:5173", // For local development
-  "http://localhost:5175", // For local development
-];
-
-// CORS configuration
+// Middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+app.use(cookieParser());
+app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("API Work 😎 😎 😎");
-});
+app.use("/api/client", clientRouter);
 
-app.use(cookieParser()); // Parse cookies
-app.use(express.json()); // Parse incoming JSON
-app.use("/auth", authRouter); // Use authRouter for authentication routes
-// GET ALL PRODUCT
-app.use("/products", products)
-// GET ALL CART
-app.use("/cart", cart)
-// Start the server
-app.listen(PORT, () =>
-  console.log(`Server is now running on port ${PORT} 😎 😎 😎`)
-);
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
