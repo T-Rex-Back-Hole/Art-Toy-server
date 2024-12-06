@@ -13,7 +13,7 @@ const registerAdmin = async (req, res) => {
     if (existingClient) {
       return res.status(400).json({
         success: false,
-        message: "Client already exists with this email.",
+        message: "Admin already exists with this email. ",
       });
     }
 
@@ -33,7 +33,7 @@ const registerAdmin = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Client registered successfully.",
+      message: "Admin registered successfully. ✅👍",
       client: {
         id: newClient._id,
         userName: newClient.userName,
@@ -43,7 +43,7 @@ const registerAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration Error:", error);
-    res.status(500).json({ success: false, message: "Registration failed." });
+    res.status(500).json({ success: false, message: "Registration failed. " });
   }
 };
 
@@ -77,7 +77,6 @@ const loginAdmin = async (req, res) => {
     const token = jwt.sign(
       {
         id: checkUser._id,
-
         role: checkUser.role,
         email: checkUser.email,
       },
@@ -87,7 +86,7 @@ const loginAdmin = async (req, res) => {
 
     res.cookie("token", token, { httpOnly: true, secure: true }).json({
       success: true,
-      message: "Logged in successfully",
+      message: "Admin Logged in successfully ✅",
       user: {
         email: checkUser.email,
         user: checkUser.userName,
