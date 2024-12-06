@@ -1,5 +1,5 @@
-import orderModel from "../models/orderModel.js";
-import userModel from "../models/userModel.js";
+import orderModel from "../models/order.js";
+import userModel from "../models/User.js";
 import Stripe from "stripe";
 
 // global variables
@@ -11,6 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Placing orders using Stripe Method
 const placeOrderStripe = async (req, res) => {
+  // #swagger.tags = ['Product']
   try {
     const { userId, items, amount, address } = req.body;
     const { origin } = req.headers;
