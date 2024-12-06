@@ -1,4 +1,3 @@
-import Client from "../models/client.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
