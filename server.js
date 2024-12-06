@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 
 // Routes
 import productRouter from "./routes/productRoutes.js";
+import cartRouter from "./routes/cartRoutes.js";
 import adminProductsRouter from "./routes/admin/products-routes.js";
 import adminRouter from "./routes/admin/loginAdmin.js";
 
@@ -20,7 +21,6 @@ connectDB();
 
 const allowedOrigins = [
   "https://t-rax-black-hole.vercel.app",
-  "https://test-user-deploy.vercel.app",
   "http://localhost:5173", // For local development
   "http://localhost:5175", // For local development
 ];
@@ -45,6 +45,8 @@ app.use(express.json());
 app.use("/client", clientRouter);
 //All Product
 app.use("/products", productRouter);
+app.use("/cart", cartRouter);
+
 // admin product
 app.use("/adminProducts", adminProductsRouter);
 // admin login
