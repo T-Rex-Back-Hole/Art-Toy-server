@@ -1,4 +1,4 @@
-import userModel from "../models/user.js";
+import userModel from "../models/User.js";
 
 // add products to user cart
 const addToCart = async (req, res) => {
@@ -6,7 +6,10 @@ const addToCart = async (req, res) => {
     const { userId, itemId, size } = req.body;
 
     const userData = await userModel.findById(userId);
+    console.log(userData)
     let cartData = await userData.cartData;
+    console.log(cartData)
+
 
     if (cartData[itemId]) {
       if (cartData[itemId][size]) {
@@ -53,6 +56,8 @@ const getUserCart = async (req, res) => {
 
     const userData = await userModel.findById(userId);
     let cartData = await userData.cartData;
+    console.log(cartData)
+
 
     res.json({ success: true, cartData });
   } catch (error) {
