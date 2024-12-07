@@ -10,14 +10,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    lowercase: true,
-    match: [/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/],
+    lowercase: true, // แปลงเป็นตัวพิมพ์เล็กก่อนบันทึก
+    trim: true, // ลบช่องว่างที่เริ่มต้นและสิ้นสุด
   },
   password: {
     type: String,
     required: true,
-    // minlength: [8],
-    // select: false,
   },
   createdAt: {
     type: Date,
@@ -32,15 +30,18 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ["admin", "user"],
+    default: "user",
   },
-  // address: {
-  //   fullname: { type: String, required: true },
-  //   phoneNumber: { type: String, required: true },
-  //   province: { type: String, required: true },
-  //   subDistrict: { type: String, required: true },
-  //   district: { type: String, required: true },
-  //   postal: { type: String, required: true },
-  // },
+  cartData: { type: Object, default: {} },
+
+  address: {  // ไม่บังคับให้กรอกที่อยู่ในขั้นตอนการลงทะเบียน
+    fullname: { type: String, default: null },
+    phoneNumber: { type: String, default: null },
+    province: { type: String, default: null },
+    subDistrict: { type: String, default: null },
+    district: { type: String, default: null },
+    zipcode: { type: String, default: null },
+  },
 });
 
 const userModel = mongoose.model("user", userSchema);

@@ -1,10 +1,23 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+
+const isValidEmail = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  return emailRegex.test(email);
+};
+
 // Controller สำหรับการลงทะเบียน client ใหม่
 const registerClient = async (req, res) => {
   // รับข้อมูลจาก request body
   const { name, email, password } = req.body;
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+    });
+  }
 
   try {
     // ตรวจสอบว่ามีอีเมลนี้ในระบบแล้วหรือไม่
@@ -122,6 +135,7 @@ const authMiddleware = async (req, res, next) => {
     // ดำเนินการต่อไปยัง middleware ถัดไป
     next();
   } catch (error) {
+    console.log(error);
     res.status(401).json({
       success: false,
       message: "Unauthorized user!",

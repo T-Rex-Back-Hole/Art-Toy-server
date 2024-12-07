@@ -118,9 +118,25 @@
         }
       }
     },
-    "/cart/get": {
+    "/cart/get/{userId}": {
       "get": {
         "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "properties": {
+                "userId": {
+                  "example": "any"
+                }
+               
+                
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -146,10 +162,8 @@
                 },
                 "itemId": {
                   "example": "any"
-                },
-                "size": {
-                  "example": "any"
                 }
+              
               }
             }
           }

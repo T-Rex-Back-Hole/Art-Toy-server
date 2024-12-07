@@ -1,28 +1,30 @@
 import userModel from "../models/User.js";
+import productModel from "../models/product.js";
 
 // add products to user cart
 const addToCart = async (req, res) => {
   try {
-    const { userId, itemId, size } = req.body;
+    const { userId, itemId } = req.body;
+
+    console.log("Log userId",userId)
 
     const userData = await userModel.findById(userId);
-    console.log(userData)
-    let cartData = await userData.cartData;
-    console.log(cartData)
-
+    const productData = await productModel.findById(itemId);
+    const cartData = productData
+    delete cartData._id
 
     if (cartData[itemId]) {
-      if (cartData[itemId][size]) {
-        cartData[itemId][size] += 1;
+      if (cartData[itemId]) {
+        cartData[itemId] += 1;
       } else {
-        cartData[itemId][size] = 1;
+        cartData[itemId] = 1;
       }
     } else {
       cartData[itemId] = {};
-      cartData[itemId][size] = 1;
+      cartData[itemId] = 1;
     }
 
-    await userModel.findByIdAndUpdate(userId, { cartData });
+    await userModel.findByIdAndUpdate(userId, {cartData:productData});
 
     res.json({ success: true, message: "Added To Cart" });
   } catch (error) {
@@ -34,12 +36,12 @@ const addToCart = async (req, res) => {
 // update user cart
 const updateCart = async (req, res) => {
   try {
-    const { userId, itemId, size, quantity } = req.body;
+    const { userId, itemId, quantity } = req.body;
 
     const userData = await userModel.findById(userId);
     let cartData = await userData.cartData;
 
-    cartData[itemId][size] = quantity;
+    cartData[itemId] = quantity;
 
     await userModel.findByIdAndUpdate(userId, { cartData });
     res.json({ success: true, message: "Cart Updated" });
@@ -52,12 +54,12 @@ const updateCart = async (req, res) => {
 // get user cart data
 const getUserCart = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.params;
+    console.log("Log params", req.query)
 
     const userData = await userModel.findById(userId);
     let cartData = await userData.cartData;
-    console.log(cartData)
-
+    console.log(cartData);
 
     res.json({ success: true, cartData });
   } catch (error) {
