@@ -21,9 +21,10 @@ connectDB();
 // Middleware
 
 const allowedOrigins = [
+  "http://localhost:5000",
   "https://t-rax-black-hole.vercel.app",
   "http://localhost:5173", // For local development
-  "http://localhost:5175", // For local development
+  "http://localhost:5174", // For local development
 ];
 app.use(
   cors({
@@ -52,11 +53,6 @@ app.use("/", productRouter);
 app.use("/cart", cartRouter);
 
 app.use("/order", orderRouter)
-
-// admin product
-// app.use("/adminProducts", adminProductsRouter);
-// admin login
-// app.use("/admin", adminRouter)
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT} 😎 😎 😎 `));

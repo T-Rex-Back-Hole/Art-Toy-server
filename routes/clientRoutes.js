@@ -5,6 +5,7 @@ import {
   logoutClient,
 } from "../controllers/clientController.js";
 
+
 const clientRouter = express.Router();
 
 clientRouter.post("/register", registerClient);
