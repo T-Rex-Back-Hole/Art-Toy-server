@@ -1,9 +1,9 @@
 import express from "express";
 import {
-  registerClient,
-  loginClient,
-  logoutClient,
-} from "../controllers/clientController.js";
+  register,
+  login,
+  getUserData,
+} from "../controllers/clientController.js"; // ตรวจสอบว่ามีการใช้งานฟังก์ชั่นที่ export ถูกต้องจาก controller
 
 
 const clientRouter = express.Router();
