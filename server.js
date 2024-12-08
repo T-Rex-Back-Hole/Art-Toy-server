@@ -4,12 +4,13 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import clientRouter from "./routes/clientRoutes.js";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import swaggerFile from './swagger-output.json' with { type: 'json' };
 
 // Routes
 import productRouter from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
-import adminProductsRouter from "./routes/admin/products-routes.js";
-import adminRouter from "./routes/admin/loginAdmin.js";
+import orderRouter from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -20,9 +21,10 @@ connectDB();
 // Middleware
 
 const allowedOrigins = [
+  "http://localhost:5000",
   "https://t-rax-black-hole.vercel.app",
   "http://localhost:5173", // For local development
-  "http://localhost:5175", // For local development
+  "http://localhost:5174", // For local development
 ];
 app.use(
   cors({
@@ -41,18 +43,16 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile))
+console.log(`Swagger is running on localhost:${PORT}/api-docs 😎👍`)
 // login User
 app.use("/client", clientRouter);
 //All Product
-app.use("/products", productRouter);
+app.use("/", productRouter);
 app.use("/cart", cartRouter);
 
-// admin product
-app.use("/adminProducts", adminProductsRouter);
-// admin login
-app.use("/admin", adminRouter)
-// app.use("/api/auth", authRouter);
-// app.use("/api/admin/products", adminProductsRouter);
+app.use("/order", orderRouter)
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT} 😎 😎 😎 `));
