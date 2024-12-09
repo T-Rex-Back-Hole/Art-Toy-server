@@ -5,14 +5,18 @@ import productModel from "../models/product.js";
 const addToCart = async (req, res) => {
   try {
     const { userId, itemId } = req.body;
+
     // ค้นหาข้อมูลสินค้าจาก productModel
     const productData = await productModel.findById(itemId);
+
     if (!productData) {
       return res.json({ success: false, message: "Product not found" });
     }
+
     // ค้นหาข้อมูลของผู้ใช้จาก userModel
     const user = await userModel.findById(userId);
     let cartData = user.cartData || {};
+
     // เช็คว่ามีสินค้านี้อยู่ใน cartData หรือไม่
     if (cartData[itemId]) {
       // ถ้ามีแล้ว เพิ่มจำนวนสินค้าขึ้น 1
@@ -30,8 +34,10 @@ const addToCart = async (req, res) => {
         description: productData.description,
       };
     }
+
     // อัปเดต cartData ของผู้ใช้ในฐานข้อมูล
     await userModel.findByIdAndUpdate(userId, { cartData });
+
     res.json({ success: true, message: "Added To Cart" });
   } catch (error) {
     console.log(error);

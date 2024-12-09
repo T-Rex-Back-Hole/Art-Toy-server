@@ -11,6 +11,7 @@
   "paths": {
     "/client/register": {
       "post": {
+        "tags": ["Users"],
         "description": "",
         "parameters": [
           {
@@ -47,6 +48,7 @@
     },
     "/client/login": {
       "post": {
+        "tags": ["Users"],
         "description": "",
         "parameters": [
           {
@@ -77,6 +79,7 @@
     },
     "/client/logout": {
       "post": {
+        "tags": ["Users"],
         "description": "",
         "responses": {
           "default": {
@@ -87,6 +90,7 @@
     },
     "/products": {
       "get": {
+        "tags": ["Products"],
         "description": "",
         "responses": {
           "200": {
@@ -97,6 +101,7 @@
     },
     "/{productId}": {
       "get": {
+        "tags": ["Products"],
         "description": "",
         "parameters": [
           {
@@ -115,19 +120,14 @@
     },
     "/cart/get/{userId}": {
       "get": {
-        "description": "",
+        "tags": ["Cart"],
+        "description": "Hello",
         "parameters": [
           {
             "name": "userId",
             "in": "path",
-            "schema": {
-              "type": "string",
-              "properties": {
-                "userId": {
-                  "example": "any"
-                }
-              }
-            }
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -142,6 +142,7 @@
     },
     "/cart/add": {
       "post": {
+        "tags": ["Cart"],
         "description": "",
         "parameters": [
           {
@@ -172,6 +173,7 @@
     },
     "/cart/update": {
       "post": {
+        "tags": ["Cart"],
         "description": "",
         "parameters": [
           {
@@ -468,3 +470,4 @@
     }
   }
 }
+

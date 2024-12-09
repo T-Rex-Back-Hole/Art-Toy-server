@@ -4,7 +4,7 @@ import cors from "cors";
 import clientRouter from "./routes/clientRoutes.js";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import swaggerFile from './swagger-output.json' with { type: 'json' };
+  import swaggerFile from './swagger-output.json' with { type: 'json' };
 
 // Routes
 import productRouter from "./routes/productRoutes.js";
