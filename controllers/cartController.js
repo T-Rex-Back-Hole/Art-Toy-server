@@ -6,25 +6,37 @@ const addToCart = async (req, res) => {
   try {
     const { userId, itemId } = req.body;
 
-    console.log("Log userId",userId)
-
-    const userData = await userModel.findById(userId);
+    // ค้นหาข้อมูลสินค้าจาก productModel
     const productData = await productModel.findById(itemId);
-    const cartData = productData
-    delete cartData._id
 
-    if (cartData[itemId]) {
-      if (cartData[itemId]) {
-        cartData[itemId] += 1;
-      } else {
-        cartData[itemId] = 1;
-      }
-    } else {
-      cartData[itemId] = {};
-      cartData[itemId] = 1;
+    if (!productData) {
+      return res.json({ success: false, message: "Product not found" });
     }
 
-    await userModel.findByIdAndUpdate(userId, {cartData:productData});
+    // ค้นหาข้อมูลของผู้ใช้จาก userModel
+    const user = await userModel.findById(userId);
+    let cartData = user.cartData || {};
+
+    // เช็คว่ามีสินค้านี้อยู่ใน cartData หรือไม่
+    if (cartData[itemId]) {
+      // ถ้ามีแล้ว เพิ่มจำนวนสินค้าขึ้น 1
+      cartData[itemId].quantity += 1;
+    } else {
+      // ถ้าไม่มีสินค้าใน cartData ให้เพิ่มข้อมูลสินค้าลงใน cartData พร้อมจำนวน 1
+      cartData[itemId] = {
+        quantity: 1,
+        name: productData.name,
+        price: productData.price,
+        image: productData.image,
+        category: productData.category,
+        materials: productData.materials,
+        product_type: productData.product_type,
+        description: productData.description,
+      };
+    }
+
+    // อัปเดต cartData ของผู้ใช้ในฐานข้อมูล
+    await userModel.findByIdAndUpdate(userId, { cartData });
 
     res.json({ success: true, message: "Added To Cart" });
   } catch (error) {
@@ -55,7 +67,7 @@ const updateCart = async (req, res) => {
 const getUserCart = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Log params", req.query)
+    console.log("Log params", req.query);
 
     const userData = await userModel.findById(userId);
     let cartData = await userData.cartData;

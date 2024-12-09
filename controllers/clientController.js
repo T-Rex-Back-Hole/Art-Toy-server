@@ -23,7 +23,7 @@ export const registerClient = async (req, res) => {
         message: "Client already exists with this email.",
       });
     }
-console.log(password)
+    console.log(password);
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -54,7 +54,6 @@ console.log(password)
   }
 };
 
-
 export const loginClient = async (req, res) => {
   const { email, password } = req.body;
 
@@ -62,7 +61,7 @@ export const loginClient = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "กรุณากรอกอีเมลและรหัสผ่าน"
+      message: "กรุณากรอกอีเมลและรหัสผ่าน",
     });
   }
 
@@ -72,7 +71,7 @@ export const loginClient = async (req, res) => {
     if (!client) {
       return res.status(400).json({
         success: false,
-        message: "ไม่พบอีเมลนี้ในระบบ"
+        message: "ไม่พบอีเมลนี้ในระบบ",
       });
     }
 
@@ -80,7 +79,7 @@ export const loginClient = async (req, res) => {
     if (!password) {
       return res.status(400).json({
         success: false,
-        message: "กรุณากรอกรหัสผ่าน"
+        message: "กรุณากรอกรหัสผ่าน",
       });
     }
 
@@ -88,7 +87,7 @@ export const loginClient = async (req, res) => {
     if (!client.password) {
       return res.status(500).json({
         success: false,
-        message: "รหัสผ่านไม่ถูกต้องในฐานข้อมูล"
+        message: "รหัสผ่านไม่ถูกต้องในฐานข้อมูล",
       });
     }
 
@@ -97,7 +96,7 @@ export const loginClient = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
+        message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง",
       });
     }
 
@@ -107,10 +106,12 @@ export const loginClient = async (req, res) => {
       process.env.CLIENT_SECRET_KEY,
       { expiresIn: "1h" }
     );
-
     // ส่งคุกกี้ที่เก็บ token กลับไป
     res
-      .cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production" })
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      })
       .status(200)
       .json({
         success: true,
