@@ -1,6 +1,5 @@
 import express from "express";
 import connectDB from "./config/mongodb.js";
-import cookieParser from "cookie-parser";
 import cors from "cors";
 import clientRouter from "./routes/clientRoutes.js";
 import dotenv from "dotenv";
@@ -23,8 +22,8 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5000",
   "https://t-rax-black-hole.vercel.app",
-  "http://localhost:5173", // For local development
-  "http://localhost:5174", // For local development
+  "http://localhost:5173", 
+  "http://localhost:5174", 
 ];
 app.use(
   cors({
@@ -41,7 +40,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(cookieParser());
+
 app.use(express.json());
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile))
@@ -52,7 +51,7 @@ app.use("/client", clientRouter);
 app.use("/", productRouter);
 app.use("/cart", cartRouter);
 
-app.use("/order", orderRouter)
+app.use("/order", orderRouter) 
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT} 😎 😎 😎 `));

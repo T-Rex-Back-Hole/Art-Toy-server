@@ -41,8 +41,6 @@ export const registerClient = async (req, res) => {
       },
     });
 
-    await newUser.save();
-
     return res
       .status(201)
       .json({ success: true, message: "User registered successfully." });
