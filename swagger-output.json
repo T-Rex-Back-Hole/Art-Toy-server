@@ -7,9 +7,7 @@
   },
   "host": "localhost:5000",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/client/register": {
       "post": {
@@ -28,9 +26,6 @@
                   "example": "any"
                 },
                 "password": {
-                  "example": "any"
-                },
-                "role": {
                   "example": "any"
                 }
               }
@@ -131,8 +126,6 @@
                 "userId": {
                   "example": "any"
                 }
-               
-                
               }
             }
           }
@@ -163,7 +156,6 @@
                 "itemId": {
                   "example": "any"
                 }
-              
               }
             }
           }
