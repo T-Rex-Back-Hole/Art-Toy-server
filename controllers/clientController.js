@@ -23,7 +23,6 @@ export const registerClient = async (req, res) => {
         message: "Client already exists with this email.",
       });
     }
-    console.log(password);
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -48,20 +47,25 @@ export const registerClient = async (req, res) => {
         role: newClient.role,
       },
     });
+
+    return res
+      .status(201)
+      .json({ success: true, message: "User registered successfully." });
   } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ success: false, message: "Registration failed." });
+    console.error("Registration error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during registration." });
   }
 };
 
 export const loginClient = async (req, res) => {
   const { email, password } = req.body;
 
-  // ตรวจสอบว่า email และ password ถูกส่งเข้ามาหรือไม่
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "กรุณากรอกอีเมลและรหัสผ่าน",
+      message: "กรุณากรอกอีเมลและรหัสผ่าน", // "Please enter email and password"
     });
   }
 
@@ -71,32 +75,16 @@ export const loginClient = async (req, res) => {
     if (!client) {
       return res.status(400).json({
         success: false,
-        message: "ไม่พบอีเมลนี้ในระบบ",
+        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
       });
     }
 
-    // ตรวจสอบว่ารหัสผ่านถูกส่งมา
-    if (!password) {
-      return res.status(400).json({
-        success: false,
-        message: "กรุณากรอกรหัสผ่าน",
-      });
-    }
-
-    // ตรวจสอบว่า client.password มีค่า
-    if (!client.password) {
-      return res.status(500).json({
-        success: false,
-        message: "รหัสผ่านไม่ถูกต้องในฐานข้อมูล",
-      });
-    }
-
-    // เปรียบเทียบรหัสผ่านที่กรอกกับรหัสผ่านที่เก็บในฐานข้อมูล
+    // เปรียบเทียบรหัสผ่าน
     const isMatch = await bcrypt.compare(password, client.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง",
+        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
       });
     }
 
@@ -106,31 +94,30 @@ export const loginClient = async (req, res) => {
       process.env.CLIENT_SECRET_KEY,
       { expiresIn: "1h" }
     );
-    // ส่งคุกกี้ที่เก็บ token กลับไป
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
-      .json({
-        success: true,
-        message: "เข้าสู่ระบบสำเร็จ",
-        client: {
-          id: client._id,
-          userName: client.userName,
-          email: client.email,
-        },
-      });
+
+    // ส่ง Token กลับไป
+    res.status(200).json({
+      success: true,
+      message: "เข้าสู่ระบบสำเร็จ", // "Login successful"
+      token, // ส่ง Token กลับไป
+      client: {
+        id: client._id,
+        userName: client.userName,
+        email: client.email,
+      },
+    });
   } catch (error) {
-    console.error("ข้อผิดพลาดในการเข้าสู่ระบบ:", error);
-    res.status(500).json({ success: false, message: "การเข้าสู่ระบบล้มเหลว" });
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed", // "การเข้าสู่ระบบล้มเหลว"
+    });
   }
 };
 
 export const logoutClient = (req, res) => {
+  // Just send a response indicating successful logout.
   res
-    .clearCookie("token")
     .status(200)
     .json({ success: true, message: "Logout successful.😎 😎 😎" });
 };

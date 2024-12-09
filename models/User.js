@@ -33,15 +33,6 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
   cartData: { type: Object, default: {} },
-
-  address: {  // ไม่บังคับให้กรอกที่อยู่ในขั้นตอนการลงทะเบียน
-    fullname: { type: String, default: null },
-    phoneNumber: { type: String, default: null },
-    province: { type: String, default: null },
-    subDistrict: { type: String, default: null },
-    district: { type: String, default: null },
-    zipcode: { type: String, default: null },
-  },
 });
 
 const userModel = mongoose.model("user", userSchema);
