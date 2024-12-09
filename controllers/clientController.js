@@ -15,7 +15,7 @@ export const registerClient = async (req, res) => {
         message: "Client already exists with this email.",
       });
     }
-    console.log(password);
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
