@@ -15,7 +15,7 @@ const addToCart = async (req, res) => {
 
     // ค้นหาข้อมูลของผู้ใช้จาก userModel
     const user = await userModel.findById(userId);
-    let cartData = user.cartData || {};
+    let cartData = user.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
 
     // เช็คว่ามีสินค้านี้อยู่ใน cartData หรือไม่
     if (cartData[itemId]) {
@@ -50,11 +50,23 @@ const updateCart = async (req, res) => {
   try {
     const { userId, itemId, quantity } = req.body;
 
+    // ตรวจสอบ quantity
+    if (quantity < 1) {
+      return res.json({
+        success: false,
+        message: "Quantity must be at least 1",
+      });
+    }
+
     const userData = await userModel.findById(userId);
-    let cartData = await userData.cartData;
+    let cartData = userData.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
 
-    cartData[itemId] = quantity;
+    // อัปเดตจำนวนสินค้าภายใน cartData
+    if (cartData[itemId]) {
+      cartData[itemId].quantity = quantity;
+    }
 
+    // อัปเดต cartData ของผู้ใช้ในฐานข้อมูล
     await userModel.findByIdAndUpdate(userId, { cartData });
     res.json({ success: true, message: "Cart Updated" });
   } catch (error) {
@@ -67,11 +79,9 @@ const updateCart = async (req, res) => {
 const getUserCart = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Log params", req.query);
 
     const userData = await userModel.findById(userId);
-    let cartData = await userData.cartData;
-    console.log(cartData);
+    let cartData = userData.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
 
     res.json({ success: true, cartData });
   } catch (error) {
