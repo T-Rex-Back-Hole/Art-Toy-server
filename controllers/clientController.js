@@ -92,7 +92,7 @@ export const loginClient = async (req, res) => {
     const token = jwt.sign(
       { id: client._id, email: client.email },
       process.env.CLIENT_SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "1y" }
     );
 
     // ส่ง Token กลับไป
