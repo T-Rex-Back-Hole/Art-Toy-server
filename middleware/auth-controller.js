@@ -6,7 +6,14 @@ const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   return emailRegex.test(email);
 };
+const checkAuth = async (req, res) => {
+  try{
+    const token = req.header.authurization.replace("barer")
 
+  }catch{
+
+  }
+}
 // Controller สำหรับการลงทะเบียน client ใหม่
 const registerClient = async (req, res) => {
   // รับข้อมูลจาก request body
@@ -120,18 +127,22 @@ const logoutClient = (req, res) => {
 // Middleware สำหรับตรวจสอบการยืนยันตัวตน
 const authMiddleware = async (req, res, next) => {
   // ดึง token จาก cookie
-  const token = req.cookies.token;
+  const token = req.headers.authorization.replace("Bearer ", "");
   if (!token)
     return res.status(401).json({
       success: false,
       message: "Unauthorized user!",
     });
+    console.log("Log Token => ", token)
 
   try {
     // ตรวจสอบความถูกต้องของ token
     const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
     // เพิ่มข้อมูล client ใน request object
     req.client = decoded;
+
+    console.log(req.client)
+    
     // ดำเนินการต่อไปยัง middleware ถัดไป
     next();
   } catch (error) {

@@ -4,7 +4,8 @@ import productModel from "../models/product.js";
 // add products to user cart
 const addToCart = async (req, res) => {
   try {
-    const { userId, itemId } = req.body;
+    const { itemId } = req.body;
+    const { id } = req.client;
 
     // ค้นหาข้อมูลสินค้าจาก productModel
     const productData = await productModel.findById(itemId);
@@ -14,7 +15,7 @@ const addToCart = async (req, res) => {
     }
 
     // ค้นหาข้อมูลของผู้ใช้จาก userModel
-    const user = await userModel.findById(userId);
+    const user = await userModel.findById(id);
     let cartData = user.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
 
     // เช็คว่ามีสินค้านี้อยู่ใน cartData หรือไม่
@@ -36,7 +37,7 @@ const addToCart = async (req, res) => {
     }
 
     // อัปเดต cartData ของผู้ใช้ในฐานข้อมูล
-    await userModel.findByIdAndUpdate(userId, { cartData });
+    await userModel.findByIdAndUpdate(id, { cartData });
 
     res.json({ success: true, message: "Added To Cart" });
   } catch (error) {
@@ -48,7 +49,7 @@ const addToCart = async (req, res) => {
 // update user cart
 const updateCart = async (req, res) => {
   try {
-    const { userId, itemId, quantity } = req.body;
+    const { id, itemId, quantity } = req.body;
 
     // ตรวจสอบ quantity
     if (quantity < 1) {
@@ -58,7 +59,7 @@ const updateCart = async (req, res) => {
       });
     }
 
-    const userData = await userModel.findById(userId);
+    const userData = await userModel.findById(id);
     let cartData = userData.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
 
     // อัปเดตจำนวนสินค้าภายใน cartData
@@ -67,7 +68,7 @@ const updateCart = async (req, res) => {
     }
 
     // อัปเดต cartData ของผู้ใช้ในฐานข้อมูล
-    await userModel.findByIdAndUpdate(userId, { cartData });
+    await userModel.findByIdAndUpdate(id, { cartData });
     res.json({ success: true, message: "Cart Updated" });
   } catch (error) {
     console.log(error);
@@ -90,4 +91,57 @@ const getUserCart = async (req, res) => {
   }
 };
 
-export { addToCart, updateCart, getUserCart };
+const removeCart = async (req, res) => {
+  try {
+    const { itemId } = req.query; // รับ userId และ itemId จาก URL parameters หรือ body
+
+    const userId = req.client.id;
+
+    // console.log("Log req.data.client => ", userId);
+
+    // ค้นหาผู้ใช้ในฐานข้อมูล
+    const userData = await userModel.findById(userId);
+
+    console.log("Log userdata => ", userData);
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // ตรวจสอบว่ามี cartData หรือไม่
+
+    let cartData = userData.cartData;
+    if (cartData[itemId]) {
+      delete cartData[itemId];
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found in cart",
+      });
+    }
+    // Update user's cart
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { cartData },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Cart item updated",
+      cart: updatedUser.cartData,
+    });
+
+    // บันทึกข้อมูลผู้ใช้หลังจากอัปเดตตะกร้า
+    await userData.save();
+
+    // ส่งข้อมูลตะกร้าหลังจากการลบสินค้า
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export { addToCart, updateCart, getUserCart, removeCart };
