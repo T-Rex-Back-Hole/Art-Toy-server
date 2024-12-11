@@ -23,7 +23,8 @@ export const registerClient = async (req, res) => {
         message: "Client already exists with this email.",
       });
     }
-    // Hash the password
+
+    // เข้ารหัสรหัสผ่าน
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // สร้างผู้ใช้ใหม่
@@ -37,9 +38,10 @@ export const registerClient = async (req, res) => {
     // บันทึกผู้ใช้ใหม่
     await newClient.save();
 
-    res.status(201).json({
+    // ส่ง response เพียงครั้งเดียว
+    return res.status(201).json({
       success: true,
-      message: "Client registered successfully.",
+      message: "Registration successful",
       client: {
         id: newClient._id,
         userName: newClient.userName,
@@ -48,14 +50,12 @@ export const registerClient = async (req, res) => {
       },
     });
 
-    return res
-      .status(201)
-      .json({ success: true, message: "User registered successfully." });
   } catch (error) {
     console.error("Registration error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during registration." });
+    return res.status(500).json({
+      success: false,
+      message: "Server error during registration."
+    });
   }
 };
 
@@ -116,8 +116,18 @@ export const loginClient = async (req, res) => {
 };
 
 export const logoutClient = (req, res) => {
-  // Just send a response indicating successful logout.
-  res
-    .status(200)
-    .json({ success: true, message: "Logout successful.😎 😎 😎" });
+  try{
+    res.clearCookie("token");
+    return res.status(200).json({ 
+      success: true, 
+    message: "Logout successful.😎 😎 😎"
+   });
+  } catch (error) {
+    console.error("Logout error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error logging out"
+    });
+  }
 };
+
