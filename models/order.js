@@ -1,13 +1,23 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  items: { type: Array, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  items: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+  ],
   amount: { type: Number, required: true },
-  address: { type: Object, required: true },
-  status: { type: String, required: true, default: "Order Placed" },
-  paymentMethod: { type: String, require: true },
-  payment: { type: Boolean, require: true, default: false },
-  date: { type: Date, require: true },
+  address: {
+    // ที่อยู่จะถูกกรอกในขั้นตอน checkout
+    fullname: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    province: { type: String, required: true },
+    subDistrict: { type: String, required: true },
+    district: { type: String, required: true },
+    zipcode: { type: String, required: true },
+  },
+  status: { type: String, default: "Pending" },
+  paymentStatus: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const orderModel = mongoose.model.order || mongoose.model("order", orderSchema);

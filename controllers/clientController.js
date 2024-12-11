@@ -1,90 +1,123 @@
-import Client from '../models/client.js';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-// ฟังก์ชันสำหรับสร้าง JWT token โดยรับ id ของ client
-const signToken = (id) => {
-  return jwt.sign(
-    { id }, // payload ที่จะเก็บใน token
-    process.env.JWT_SECRET, // secret key จาก environment variable
-    { expiresIn: process.env.JWT_EXPIRES_IN } // ระยะเวลาหมดอายุของ token
-  );
-};
+export const registerClient = async (req, res) => {
+  const { userName, email, password, role } = req.body;
 
-// Controller สำหรับการลงทะเบียน client ใหม่
-export const register = async (req, res) => {
-  try {
-    // สร้าง client ใหม่จากข้อมูลที่ส่งมาใน request body
-    const newClient = await Client.create({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password // รหัสผ่านจะถูกเข้ารหัสอัตโนมัติโดย middleware
-    });
-
-    // สร้าง token สำหรับ client ใหม่
-    const token = signToken(newClient._id);
-
-    // ส่งข้อมูลตอบกลับพร้อม token
-    res.status(201).json({
-      status: 'success',
-      token,
-      data: {
-        client: newClient
-      }
-    });
-  } catch (err) {
-    // จัดการกรณีเกิดข้อผิดพลาด เช่น อีเมลซ้ำ หรือข้อมูลไม่ครบ
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
+  if (!userName) {
+    return res.status(400).json({
+      success: false,
+      message: "userName is required.",
     });
   }
-};
 
-// Controller สำหรับการเข้าสู่ระบบ
-export const login = async (req, res) => {
+  const assignedRole = role && ["admin", "user"].includes(role) ? role : "user";
+
   try {
-    const { email, password } = req.body;
-
-    // 1) ตรวจสอบว่ามีการส่งอีเมลและรหัสผ่านมาหรือไม่
-    if (!email || !password) {
+    // ตรวจสอบว่ามีผู้ใช้ที่มีอีเมลเดียวกันหรือไม่
+    const existingClient = await User.findOne({ email });
+    if (existingClient) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'กรุณากรอกอีเมลและรหัสผ่าน'
+        success: false,
+        message: "Client already exists with this email.",
       });
     }
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 2) ค้นหา client จากอีเมล และดึงฟิลด์ password มาด้วย
-    // (ปกติฟิลด์ password จะถูกซ่อนไว้ ต้องใช้ select('+password'))
-    const client = await Client.findOne({ email }).select('+password');
-
-    // 3) ตรวจสอบว่ามี client อยู่ในระบบ และรหัสผ่านถูกต้อง
-    if (!client || !(await client.correctPassword(password, client.password))) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
-      });
-    }
-
-    // 4) ถ้าทุกอย่างถูกต้อง สร้าง token และส่งกลับ
-    const token = signToken(client._id);
-    res.status(200).json({
-      status: 'success',
-      token
+    // สร้างผู้ใช้ใหม่
+    const newClient = new User({
+      userName,
+      email,
+      role: assignedRole,
+      password: hashedPassword,
     });
-  } catch (err) {
-    // จัดการข้อผิดพลาดที่อาจเกิดขึ้น
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
+
+    // บันทึกผู้ใช้ใหม่
+    await newClient.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Client registered successfully.",
+      client: {
+        id: newClient._id,
+        userName: newClient.userName,
+        email: newClient.email,
+        role: newClient.role,
+      },
+    });
+
+    return res
+      .status(201)
+      .json({ success: true, message: "User registered successfully." });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during registration." });
+  }
+};
+
+export const loginClient = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "กรุณากรอกอีเมลและรหัสผ่าน", // "Please enter email and password"
+    });
+  }
+
+  try {
+    // ค้นหาผู้ใช้จากอีเมล
+    const client = await User.findOne({ email });
+    if (!client) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
+      });
+    }
+
+    // เปรียบเทียบรหัสผ่าน
+    const isMatch = await bcrypt.compare(password, client.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
+      });
+    }
+
+    // สร้าง JWT Token
+    const token = jwt.sign(
+      { id: client._id, email: client.email },
+      process.env.CLIENT_SECRET_KEY,
+      { expiresIn: "1y" }
+    );
+
+    // ส่ง Token กลับไป
+    res.status(200).json({
+      success: true,
+      message: "เข้าสู่ระบบสำเร็จ", // "Login successful"
+      token, // ส่ง Token กลับไป
+      client: {
+        id: client._id,
+        userName: client.userName,
+        email: client.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed", // "การเข้าสู่ระบบล้มเหลว"
     });
   }
 };
 
-// Controller สำหรับการออกจากระบบ
 export const logoutClient = (req, res) => {
-  // ลบ cookie token และส่งข้อความยืนยัน
+  // Just send a response indicating successful logout.
   res
-    .clearCookie("token")
     .status(200)
-    .json({ success: true, message: "Logout successful." });
+    .json({ success: true, message: "Logout successful.😎 😎 😎" });
 };

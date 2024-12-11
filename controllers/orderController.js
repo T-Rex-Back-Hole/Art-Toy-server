@@ -1,5 +1,5 @@
-import orderModel from "../models/orderModel.js";
-import userModel from "../models/userModel.js";
+import orderModel from "../models/order.js";
+import userModel from "../models/User.js";
 import Stripe from "stripe";
 
 // global variables
@@ -12,13 +12,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Placing orders using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { userId, items, amount, address } = req.body;  // address มาจากขั้นตอน checkout
     const { origin } = req.headers;
+
+    // ตรวจสอบว่า address ถูกกรอกมาไหม
+    if (!address || !address.fullname || !address.phoneNumber || !address.province) {
+      return res.status(400).json({
+        success: false,
+        message: "Address is incomplete.",
+      });
+    }
 
     const orderData = {
       userId,
       items,
-      address,
+      address,  // ใช้ address ที่กรอกในขั้นตอน checkout
       amount,
       paymentMethod: "Stripe",
       payment: false,
@@ -64,14 +72,20 @@ const placeOrderStripe = async (req, res) => {
   }
 };
 
+
 // Verify Stripe
 const verifyStripe = async (req, res) => {
   const { orderId, success, userId } = req.body;
 
   try {
     if (success === "true") {
-      await orderModel.findByIdAndUpdate(orderId, { payment: true });
+      await orderModel.findByIdAndUpdate(orderId, {
+        payment: true,
+        status: "Paid",
+      });
+
       await userModel.findByIdAndUpdate(userId, { cartData: {} });
+      
       res.json({ success: true });
     } else {
       await orderModel.findByIdAndDelete(orderId);

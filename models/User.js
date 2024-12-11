@@ -10,15 +10,23 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true, // แปลงเป็นตัวพิมพ์เล็กก่อนบันทึก
+    trim: true, // ลบช่องว่างที่เริ่มต้นและสิ้นสุด
   },
   password: {
     type: String,
     required: true,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   role: {
     type: String,
-    default: "admin",
+    enum: ["admin", "user"],
+    default: "user",
   },
+  cartData: { type: Object, default: {} },
 });
 
 const userModel = mongoose.model("user", userSchema);
