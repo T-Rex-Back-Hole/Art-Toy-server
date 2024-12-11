@@ -3,17 +3,17 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export const registerClient = async (req, res) => {
-  const { userName, email, password, role } = req.body;
+  const { userName, email, password } = req.body;
 
   if (!userName) {
     return res.status(400).json({
       success: false,
-      message: "userName is required.",
+      message: "Username is required.",
     });
   }
 
-  const assignedRole = role && ["admin", "user"].includes(role) ? role : "user";
-
+  // const assignedRole = role && ["admin", "user"].includes(role) ? role : "user";
+  const assignedRole = "user";
   try {
     // ตรวจสอบว่ามีผู้ใช้ที่มีอีเมลเดียวกันหรือไม่
     const existingClient = await User.findOne({ email });
