@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { decode } from "jsonwebtoken";
 
+import Client from '../models/User.js';
 
 const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -8,9 +9,27 @@ const isValidEmail = (email) => {
 };
 const checkAuth = async (req, res) => {
   try{
-    const token = req.header.authurization.replace("barer")
+    const token = req.headers.authorization.replace("Bearer", "");
 
-  }catch{
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "not found token"
+      })
+    }
+
+    const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
+
+    return res.status(200).json({
+      success: true,
+      user: decoded
+    })
+
+  }catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Token is invalid or expired"
+    })
 
   }
 }
@@ -126,27 +145,19 @@ const logoutClient = (req, res) => {
 
 // Middleware สำหรับตรวจสอบการยืนยันตัวตน
 const authMiddleware = async (req, res, next) => {
-  // ดึง token จาก cookie
   const token = req.headers.authorization.replace("Bearer ", "");
   if (!token)
     return res.status(401).json({
       success: false,
       message: "Unauthorized user!",
     });
-    console.log("Log Token => ", token)
 
   try {
-    // ตรวจสอบความถูกต้องของ token
     const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
-    // เพิ่มข้อมูล client ใน request object
     req.client = decoded;
-
-    console.log(req.client)
-    
-    // ดำเนินการต่อไปยัง middleware ถัดไป
     next();
   } catch (error) {
-    console.log(error);
+    console.error("Auth error:", error);
     res.status(401).json({
       success: false,
       message: "Unauthorized user!",

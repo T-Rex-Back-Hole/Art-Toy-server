@@ -35,7 +35,7 @@ export const registerClient = async (req, res) => {
       password: hashedPassword,
     });
 
-    // บันทึกผู้ใช้ใหม่
+    // บ���ึกผู้ใช้ใหม่
     await newClient.save();
 
     // ส่ง response เพียงครั้งเดียว
@@ -65,41 +65,37 @@ export const loginClient = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "กรุณากรอกอีเมลและรหัสผ่าน", // "Please enter email and password"
+      message: "กรุณากรอกอีเมลและรหัสผ่าน",
     });
   }
 
   try {
-    // ค้นหาผู้ใช้จากอีเมล
     const client = await User.findOne({ email });
     if (!client) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
+        message: "Invalid credentials",
       });
     }
 
-    // เปรียบเทียบรหัสผ่าน
     const isMatch = await bcrypt.compare(password, client.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials", // "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง"
+        message: "Invalid credentials",
       });
     }
 
-    // สร้าง JWT Token
     const token = jwt.sign(
       { id: client._id, email: client.email },
       process.env.CLIENT_SECRET_KEY,
       { expiresIn: "1y" }
     );
 
-    // ส่ง Token กลับไป
     res.status(200).json({
       success: true,
-      message: "เข้าสู่ระบบสำเร็จ", // "Login successful"
-      token, // ส่ง Token กลับไป
+      message: "เข้าสู่ระบบสำเร็จ",
+      token,
       client: {
         id: client._id,
         userName: client.userName,
@@ -110,7 +106,36 @@ export const loginClient = async (req, res) => {
     console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: "Login failed", // "การเข้าสู่ระบบล้มเหลว"
+      message: "Login failed",
+    });
+  }
+};
+
+export const getClientProfile = async (req, res) => {
+  try {
+    const userID = req.client.id;
+
+    const user = await User.findById(userID).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      userData: {
+        userName: user.userName,
+        email: user.email,
+      }
+    });
+  } catch (error) {
+    console.log("Error fetching user profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user profile"
     });
   }
 };
@@ -120,13 +145,55 @@ export const logoutClient = (req, res) => {
     res.clearCookie("token");
     return res.status(200).json({ 
       success: true, 
-    message: "Logout successful.😎 😎 😎"
+    message: "Logout successful.😎 �� 😎"
    });
   } catch (error) {
     console.error("Logout error", error);
     return res.status(500).json({
       success: false,
       message: "Error logging out"
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.client.id;
+
+    // ตรวจสอบว่ามี user หรือไม่
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // ตรวจสอบรหัสผ่านปัจจุบัน
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect"
+      });
+    }
+
+    // เข้ารหัสและบันทึกรหัสผ่านใหม่
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password changed successfully"
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error changing password"
     });
   }
 };
