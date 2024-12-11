@@ -97,8 +97,6 @@ const removeCart = async (req, res) => {
 
     const userId = req.client.id;
 
-    // console.log("Log req.data.client => ", userId);
-
     // ค้นหาผู้ใช้ในฐานข้อมูล
     const userData = await userModel.findById(userId);
 
@@ -109,7 +107,6 @@ const removeCart = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-
     // ตรวจสอบว่ามี cartData หรือไม่
 
     let cartData = userData.cartData;

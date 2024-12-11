@@ -133,7 +133,7 @@ const authMiddleware = async (req, res, next) => {
       success: false,
       message: "Unauthorized user!",
     });
-    console.log("Log Token => ", token)
+    // console.log("Log Token => ", token)
 
   try {
     // ตรวจสอบความถูกต้องของ token
