@@ -9,7 +9,7 @@ import { authMiddleware } from "../middleware/auth-controller.js";
 
 const cartRouter = express.Router();
 
-cartRouter.get("/get/:userId", getUserCart);
+cartRouter.get("/get",authMiddleware, getUserCart);
 cartRouter.post("/add", authMiddleware, addToCart);
 cartRouter.post("/update", authMiddleware, updateCart);
 cartRouter.delete("/removeItem", authMiddleware, removeCart);

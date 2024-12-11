@@ -79,15 +79,24 @@ const updateCart = async (req, res) => {
 // get user cart data
 const getUserCart = async (req, res) => {
   try {
-    const { userId } = req.params;
-
+    const userId = req.client.id; // ดึง userId จากข้อมูลใน request object
+    // ค้นหาผู้ใช้ในฐานข้อมูล
     const userData = await userModel.findById(userId);
-    let cartData = userData.cartData || {}; // เพิ่มการตรวจสอบกรณีที่ cartData ไม่มี
-
-    res.json({ success: true, cartData });
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    // ส่งข้อมูล cartData กลับไป
+    res.status(200).json({
+      success: true,
+      message: "Cart data retrieved successfully",
+      cart: userData.cartData,
+    });
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
