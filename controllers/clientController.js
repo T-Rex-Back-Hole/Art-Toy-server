@@ -12,10 +12,8 @@ export const registerClient = async (req, res) => {
     });
   }
 
-  // const assignedRole = role && ["admin", "user"].includes(role) ? role : "user";
   const assignedRole = "user";
   try {
-    // ตรวจสอบว่ามีผู้ใช้ที่มีอีเมลเดียวกันหรือไม่
     const existingClient = await User.findOne({ email });
     if (existingClient) {
       return res.status(400).json({
@@ -23,10 +21,9 @@ export const registerClient = async (req, res) => {
         message: "Client already exists with this email.",
       });
     }
-    // Hash the password
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // สร้างผู้ใช้ใหม่
     const newClient = new User({
       userName,
       email,
@@ -34,19 +31,7 @@ export const registerClient = async (req, res) => {
       password: hashedPassword,
     });
 
-    // บันทึกผู้ใช้ใหม่
     await newClient.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Client registered successfully.",
-      client: {
-        id: newClient._id,
-        userName: newClient.userName,
-        email: newClient.email,
-        role: newClient.role,
-      },
-    });
 
     return res
       .status(201)
@@ -65,7 +50,7 @@ export const loginClient = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "กรุณากรอกอีเมลและรหัสผ่าน", // "Please enter email and password"
+      message: "กรุณากรอกอีเมลและรหัสผ่าน",
     });
   }
 
@@ -92,7 +77,7 @@ export const loginClient = async (req, res) => {
     const token = jwt.sign(
       { id: client._id, email: client.email },
       process.env.CLIENT_SECRET_KEY,
-      { expiresIn: "1y" }
+      { expiresIn: "1h" }
     );
 
     // ส่ง Token กลับไป
