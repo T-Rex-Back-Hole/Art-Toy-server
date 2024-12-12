@@ -1,19 +1,15 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-
 const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   return emailRegex.test(email);
 };
 const checkAuth = async (req, res) => {
-  try{
-    const token = req.header.authurization.replace("barer")
-
-  }catch{
-
-  }
-}
+  try {
+    const token = req.header.authurization.replace("barer");
+  } catch {}
+};
 // Controller สำหรับการลงทะเบียน client ใหม่
 const registerClient = async (req, res) => {
   // รับข้อมูลจาก request body
@@ -37,17 +33,17 @@ const registerClient = async (req, res) => {
 
     // เข้ารหัสรหัสผ่านด้วย bcrypt ที่ความซับซ้อน 12
     const hashPassword = await bcrypt.hash(password, 12);
-    
+
     // สร้าง client ใหม่
     const newClient = new Client({
       name,
       email,
       password: hashPassword,
     });
-    
+
     // บันทึกลงฐานข้อมูล
     await newClient.save();
-    
+
     // ส่งผลลัพธ์กลับ
     res.status(200).json({
       success: true,
@@ -126,30 +122,33 @@ const logoutClient = (req, res) => {
 
 // Middleware สำหรับตรวจสอบการยืนยันตัวตน
 const authMiddleware = async (req, res, next) => {
-  // ดึง token จาก cookie
-  const token = req.headers.authorization.replace("Bearer ", "");
-  if (!token)
+  // ตรวจสอบว่ามี Authorization header หรือไม่
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  // ถ้าไม่มี token ให้ส่งกลับ Unauthorized
+  if (!token) {
     return res.status(401).json({
       success: false,
-      message: "Unauthorized user!",
+      message: "Unauthorized user! Token is missing",
     });
-    console.log("Log Token => ", token)
+  }
 
   try {
-    // ตรวจสอบความถูกต้องของ token
+    // ตรวจสอบความถูกต้องของ token และ decode token
     const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
-    // เพิ่มข้อมูล client ใน request object
-    req.client = decoded;
 
-    console.log(req.client)
-    
+    // เพิ่มข้อมูล client ใน request object
+    req.client = decoded; // เพิ่มข้อมูล client ที่ถูก decode มาในตัวแปร decoded
+
+    console.log("Decoded client: ", req.client);
+
     // ดำเนินการต่อไปยัง middleware ถัดไป
     next();
   } catch (error) {
-    console.log(error);
+    console.log("JWT verify error: ", error);
     res.status(401).json({
       success: false,
-      message: "Unauthorized user!",
+      message: "Unauthorized user! Invalid or expired token",
     });
   }
 };

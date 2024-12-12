@@ -1,5 +1,13 @@
 {
   "swagger": "2.0",
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Enter the token with the `Bearer: ` prefix, e.g. \"Bearer abcde12345\"."
+    }
+  },
   "info": {
     "title": "T-Rex API",
     "description": "Automatically generated Swagger doc",
@@ -7,9 +15,7 @@
   },
   "host": "localhost:5000",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/client/register": {
       "post": {
@@ -121,14 +127,13 @@
         }
       }
     },
-    "/cart/get/{userId}": {
+    "/cart/get": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "userId",
-            "in": "path",
-            "required": true,
+            "name": "authorization",
+            "in": "header",
             "type": "string"
           }
         ],

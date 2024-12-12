@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 export const registerClient = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -38,9 +38,10 @@ export const registerClient = async (req, res) => {
       .json({ success: true, message: "User registered successfully." });
   } catch (error) {
     console.error("Registration error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during registration." });
+    return res.status(500).json({
+      success: false,
+      message: "Server error during registration.",
+    });
   }
 };
 
@@ -101,8 +102,17 @@ export const loginClient = async (req, res) => {
 };
 
 export const logoutClient = (req, res) => {
-  // Just send a response indicating successful logout.
-  res
-    .status(200)
-    .json({ success: true, message: "Logout successful.😎 😎 😎" });
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful.😎 😎 😎",
+    });
+  } catch (error) {
+    console.error("Logout error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error logging out",
+    });
+  }
 };
