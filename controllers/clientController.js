@@ -35,8 +35,13 @@ export const registerClient = async (req, res) => {
       role: "user"
     });
 
+<<<<<<< HEAD
     await newUser.save();
     console.log("User created successfully:", newUser._id);
+=======
+    // บ���ึกผู้ใช้ใหม่
+    await newClient.save();
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
 
     // ส่ง response กลับ
     return res.status(201).json({
@@ -60,6 +65,7 @@ export const registerClient = async (req, res) => {
 };
 
 export const loginClient = async (req, res) => {
+<<<<<<< HEAD
   try {
     const { email, password } = req.body;
     console.log("Login attempt for email:", email);
@@ -95,6 +101,34 @@ export const loginClient = async (req, res) => {
     }
 
     // สร้าง token
+=======
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "กรุณากรอกอีเมลและรหัสผ่าน",
+    });
+  }
+
+  try {
+    const client = await User.findOne({ email });
+    if (!client) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, client.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
     const token = jwt.sign(
       { 
         id: user._id,
@@ -105,6 +139,7 @@ export const loginClient = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+<<<<<<< HEAD
     // ส่งข้อมูลกลับ
     return res.status(200).json({
       success: true,
@@ -115,13 +150,57 @@ export const loginClient = async (req, res) => {
         userName: user.userName,
         email: user.email
       }
+=======
+    res.status(200).json({
+      success: true,
+      message: "เข้าสู่ระบบสำเร็จ",
+      token,
+      client: {
+        id: client._id,
+        userName: client.userName,
+        email: client.email,
+      },
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
     });
 
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({
       success: false,
+<<<<<<< HEAD
       message: "An error occurred during login"
+=======
+      message: "Login failed",
+    });
+  }
+};
+
+export const getClientProfile = async (req, res) => {
+  try {
+    const userID = req.client.id;
+
+    const user = await User.findById(userID).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      userData: {
+        userName: user.userName,
+        email: user.email,
+      }
+    });
+  } catch (error) {
+    console.log("Error fetching user profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user profile"
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
     });
   }
 };
@@ -131,7 +210,7 @@ export const logoutClient = (req, res) => {
     res.clearCookie("token");
     return res.status(200).json({ 
       success: true, 
-    message: "Logout successful.😎 😎 😎"
+    message: "Logout successful.😎 �� 😎"
    });
   } catch (error) {
     console.error("Logout error", error);
@@ -142,6 +221,7 @@ export const logoutClient = (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 export const getClientProfile = async (req, res) => {
   try {
     const userID = req.client.id;
@@ -151,6 +231,15 @@ export const getClientProfile = async (req, res) => {
     const user = await User.findById(userID).select('-password');
     console.log('User found:', user);
 
+=======
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.client.id;
+
+    // ตรวจสอบว่ามี user หรือไม่
+    const user = await User.findById(userId);
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -158,6 +247,7 @@ export const getClientProfile = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     // ส่งข้อมูลผู้ใช้กลับไป
     res.json({
       success: true,
@@ -172,6 +262,32 @@ export const getClientProfile = async (req, res) => {
       success: false,
       message: "Error fetching user profile",
       error: error.message
+=======
+    // ตรวจสอบรหัสผ่านปัจจุบัน
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect"
+      });
+    }
+
+    // เข้ารหัสและบันทึกรหัสผ่านใหม่
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password changed successfully"
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error changing password"
+>>>>>>> 89b9449632d12a197ecd01d7db213d99e66d6d34
     });
   }
 };
