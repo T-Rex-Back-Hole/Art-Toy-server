@@ -86,7 +86,7 @@ export const loginClient = async (req, res) => {
         email: client.email
       },
       process.env.CLIENT_SECRET_KEY,
-      { expiresIn: "1d" }
+      { expiresIn: "60m" }
     );
 
     res.status(200).json({
