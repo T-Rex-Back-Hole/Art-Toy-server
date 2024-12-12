@@ -10,8 +10,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    lowercase: true, // แปลงเป็นตัวพิมพ์เล็กก่อนบันทึก
-    trim: true, // ลบช่องว่างที่เริ่มต้นและสิ้นสุด
+    lowercase: true,
   },
   password: {
     type: String,
@@ -29,6 +28,6 @@ const userSchema = new mongoose.Schema({
   cartData: { type: Object, default: {} },
 });
 
-const userModel = mongoose.model("user", userSchema);
+const User = mongoose.models.user || mongoose.model("user", userSchema);
 
-export default userModel;
+export default User;
