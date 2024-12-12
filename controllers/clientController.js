@@ -56,44 +56,52 @@ export const registerClient = async (req, res) => {
 export const loginClient = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt:', { email });
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "กรุณากรอกอีเมลและรหัสผ่าน"
+        message: "Please enter email and password"
       });
     }
 
     const client = await User.findOne({ email });
+    console.log('Found client:', client ? 'Yes' : 'No');
+
     if (!client) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials"
+        message: "User not found"
       });
     }
 
     const isMatch = await bcrypt.compare(password, client.password);
+    console.log('Password match:', isMatch);
+
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials"
+        message: "Invalid password"
       });
     }
 
     const token = jwt.sign(
       { 
         id: client._id,
-        email: client.email
+        email: client.email,
+        userName: client.userName
       },
       process.env.CLIENT_SECRET_KEY,
       { expiresIn: "60m" }
     );
 
-    res.status(200).json({
+    console.log('Token generated successfully');
+
+    return res.status(200).json({
       success: true,
-      message: "เข้าสู่ระบบสำเร็จ",
+      message: "Login successful",
       token,
-      client: {
+      userData: {
         id: client._id,
         userName: client.userName,
         email: client.email
@@ -101,10 +109,11 @@ export const loginClient = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     return res.status(500).json({
       success: false,
-      message: "Login failed"
+      message: "An error occurred during login",
+      error: error.message
     });
   }
 };
