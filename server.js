@@ -25,6 +25,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5000",
   "https://t-rax-black-hole.vercel.app",
+  "https://art-toy-admin.onrender.com",
   "http://localhost:5173", 
   "http://localhost:5174", 
 ];
