@@ -10,6 +10,9 @@ import swaggerUi from "swagger-ui-express";
 import productRouter from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
+import authRouter from "./routes/auth/auth-routes.js";
+import adminProductsRouter from './routes/admin/products-routes.js';
+import adminOrderRouter from './routes/admin/order-routes.js';
 
 dotenv.config();
 
@@ -52,6 +55,10 @@ app.use("/", productRouter);
 app.use("/cart", cartRouter);
 
 app.use("/order", orderRouter) 
+
+app.use("/api/auth", authRouter);
+app.use("/api/admin/products",adminProductsRouter)
+app.use("/api/admin/orders", adminOrderRouter);
 
 
 

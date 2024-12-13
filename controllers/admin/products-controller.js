@@ -144,69 +144,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-const getFilteredProducts = async (req, res) => {
-  try {
-    const {
-      category = [],
-      materials = [],
-      product_type = [],
-      sortBy = "price-lowtohigh",
-    } = req.query;
 
-    let filters = {};
-
-    if (category.length) {
-      filters.category = { $in: category.split(",") };
-    }
-
-    if (materials.length) {
-      filters.materials = { $in: materials.split(",") };
-    }
-
-    if (product_type.length) {
-      filters.product_type = { $in: product_type.split(",") };
-    }
-
-    let sort = {};
-
-    switch (sortBy) {
-      case "price-lowtohigh":
-        sort.price = 1;
-
-        break;
-      case "price-hightolow":
-        sort.price = -1;
-
-        break;
-      case "name-atoz":
-        sort.name = 1;
-
-        break;
-
-      case "name-ztoa":
-        sort.name = -1;
-
-        break;
-
-      default:
-        sort.price = 1;
-        break;
-    }
-
-    const products = await products.find(filters).sort(sort);
-
-    res.status(200).json({
-      success: true,
-      data: products,
-    });
-  } catch (e) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Some error occured",
-    });
-  }
-};
 
 export {
   handleImageUpload,
@@ -214,5 +152,5 @@ export {
   fetchAllProducts,
   editProduct,
   deleteProduct,
-  getFilteredProducts,
+  
 };
