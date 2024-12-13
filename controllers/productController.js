@@ -4,9 +4,8 @@ import productModel from "../models/product.js";
 const getAllProducts = async (req, res) => {
   try {
     // Fetch all products from the database
-    // const products = await productModel.find({});
-    // res.json({ success: true, products });
-    res.json({ success: true });
+    const products = await productModel.find({});
+    res.json({ success: true, products });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
