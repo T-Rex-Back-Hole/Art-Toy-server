@@ -1,10 +1,10 @@
 import orderModel from "../models/order.js";
-import User from "../models/User.js"; // แก้ไขเป็น User แทน userModel
+import User from "../models/User.js";
 import Stripe from "stripe";
 
 // global variables
 const currency = "thb";
-const deliveryCharge = 10;
+const deliveryCharge = 30;
 
 // gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -21,7 +21,7 @@ const placeOrderStripe = async (req, res) => {
       !addressInfo.address ||
       !addressInfo.phone ||
       !addressInfo.city ||
-      !addressInfo.pincode
+      !addressInfo.zipcode
     ) {
       return res.status(400).json({
         success: false,
@@ -50,7 +50,7 @@ const placeOrderStripe = async (req, res) => {
       price_data: {
         currency: currency,
         product_data: {
-          name: item.title, // ใช้ title ของสินค้า
+          name: item.name, // ใช้ name ของสินค้า
         },
         unit_amount: item.price * 100, // ราคาเป็นเซ็นต์
       },
@@ -134,7 +134,7 @@ const userOrders = async (req, res) => {
   }
 };
 
-// Update order status from Admin Panel
+// update order status from Admin Panel
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
