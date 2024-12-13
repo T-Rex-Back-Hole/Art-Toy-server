@@ -29,13 +29,20 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
     userId: { type: String, required: true },
-    cartItems: {
+    cartItems: [
+      {
       productId: String,
-      title: String,
-      image: String,
-      price: String,
       quantity: Number,
-    },
+      name: String,
+      price: String,
+      image: String,
+      category: String,
+      materials: String,
+      product_type: String,
+      description: String,
+      
+    }
+  ],
     totalAmount: { type: Number, required: true },
     addressInfo: {
       addressId: String,
