@@ -1,5 +1,5 @@
 import orderModel from "../models/order.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 import Stripe from "stripe";
 
 // global variables
@@ -9,10 +9,9 @@ const deliveryCharge = 30;
 // gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Placing orders using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, cartItems, totalAmount, addressInfo } = req.body; // ใช้ cartItems และ totalAmount จาก body
+    const { userId, cartItems, totalAmount, addressInfo } = req.body;
     const { origin } = req.headers;
 
     // ตรวจสอบว่า address ถูกกรอกมาไหม
@@ -52,7 +51,7 @@ const placeOrderStripe = async (req, res) => {
         product_data: {
           name: item.name, // ใช้ name ของสินค้า
         },
-        unit_amount: item.price * 100, // ราคาเป็นเซ็นต์
+        unit_amount: item.price * 30, // ราคาเป็นเซ็นต์
       },
       quantity: item.quantity,
     }));
@@ -64,7 +63,7 @@ const placeOrderStripe = async (req, res) => {
         product_data: {
           name: "Delivery Charges",
         },
-        unit_amount: deliveryCharge * 100, // ค่าจัดส่ง
+        unit_amount: deliveryCharge * 30, // ค่าจัดส่ง
       },
       quantity: 1,
     });

@@ -1,4 +1,4 @@
-import User from "../../models/admin/User.js";
+import User from "../../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -20,6 +20,7 @@ const registerUser = async (req, res) => {
       userName,
       email,
       password: hashPassword,
+      role: 'admin',
     });
     await newUser.save();
     res.status(200).json({

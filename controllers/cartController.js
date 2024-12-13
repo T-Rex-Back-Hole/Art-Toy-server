@@ -150,4 +150,100 @@ const removeCart = async (req, res) => {
   }
 };
 
-export { addToCart, updateCart, getUserCart, removeCart };
+
+const removeAllCart = async (req, res) => {
+  try {
+    const userId = req.client.id; // รับ userId จาก client ที่ล็อกอิน
+
+    // ค้นหาผู้ใช้ในฐานข้อมูล
+    const userData = await userModel.findById(userId);
+
+    console.log("Log userdata => ", userData);
+
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // รีเซ็ต cartData เป็นอ็อบเจ็กต์ว่าง
+    userData.cartData = {};  // ลบทุกๆ รายการใน cartData
+
+    // อัปเดตข้อมูลในฐานข้อมูล
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { cartData: userData.cartData },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "All items removed from cart ✅",
+      cart: updatedUser.cartData,
+    });
+
+    // บันทึกข้อมูลหลังการอัปเดตตะกร้า
+    await updatedUser.save(); // บันทึกข้อมูลของผู้ใช้
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+
+// const removeAllCart = async (req, res) => {
+//   try {
+//     const { itemId } = req.query; // รับ userId และ itemId จาก URL parameters หรือ body
+
+//     const userId = req.client.id;
+
+//     // ค้นหาผู้ใช้ในฐานข้อมูล
+//     const userData = await userModel.findById(userId);
+
+//     console.log("Log userdata => ", userData);
+
+//     if (!userData) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
+//     // ตรวจสอบว่ามี cartData หรือไม่
+
+//     let cartData = userData.cartData;
+//     if (cartData[itemId]) {
+//       delete cartData[itemId];
+//     } else {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Item not found in cart",
+//       });
+//     }
+//     // Update user's cart
+//     const updatedUser = await userModel.findByIdAndUpdate(
+//       userId,
+//       { cartData },
+//       { new: true }
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Cart item updated",
+//       cart: updatedUser.cartData,
+//     });
+
+//     // บันทึกข้อมูลผู้ใช้หลังจากอัปเดตตะกร้า
+//     await userData.save();
+
+//     // ส่งข้อมูลตะกร้าหลังจากการลบสินค้า
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
+
+export { addToCart, updateCart, getUserCart, removeCart, removeAllCart };
