@@ -2,33 +2,39 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
     userId: { type: String, required: true },
-    cartItems: [
+    items: [
       {
-      productId: String,
-      quantity: Number,
-      name: String,
-      price: String,
-      image: String,
-      category: String,
-      materials: String,
-      product_type: String,
-      description: String,
-      
-    }
-  ],
+        id: String,
+        name: String,
+        price: Number,
+        quantity: Number,
+        image: String
+      }
+    ],
     totalAmount: { type: Number, required: true },
-    addressInfo: {
-      addressId: String,
-      address: String,
-      city: String,
-      pincode: String,
-      phone: String,
-      notes: String,
+    address: {
+      fullname: String,
+      phoneNumber: String,
+      province: String,
+      district: String,
+      subDistrict: String,
+      zipcode: String,
+      notes: String
     },
-    orderStatus: { type: String, required: true },
-    paymentMethod: { type: String, required: true },
-    paymentStatus: { type: Boolean, required: true, default: false },
-    orderDate: { type: Date, required: true }
+    paymentMethod: { type: String, default: 'Stripe' },
+    paymentStatus: { type: Boolean, default: false },
+    orderStatus: { 
+      type: String, 
+      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Payment Failed'],
+      default: 'Pending',
+      required: true 
+    },
+    sessionId: String,
+    orderDate: { type: Date, default: Date.now, required: true },
+    paymentFailedAt: {
+      type: Date,
+      default: null
+    }
 });
 
 const orderModel = mongoose.models.order || mongoose.model("order", orderSchema);

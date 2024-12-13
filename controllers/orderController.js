@@ -12,88 +12,122 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Placing orders using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;  // address มาจากขั้นตอน checkout
-    const { origin } = req.headers;
+    const { items, amount, address } = req.body;
+    const userId = req.client.id;
 
-    // ตรวจสอบว่า address ถูกกรอกมาไหม
-    if (!address || !address.fullname || !address.phoneNumber || !address.province) {
-      return res.status(400).json({
-        success: false,
-        message: "Address is incomplete.",
-      });
-    }
+    console.log('Creating order with:', { items, amount, address, userId });
 
-    const orderData = {
-      userId,
-      items,
-      address,  // ใช้ address ที่กรอกในขั้นตอน checkout
-      amount,
-      paymentMethod: "Stripe",
-      payment: false,
-      date: Date.now(),
-    };
-
-    const newOrder = new orderModel(orderData);
-    await newOrder.save();
-
-    const line_items = items.map((item) => ({
+    // สร้าง line items สำหรับ Stripe
+    const lineItems = items.map((item) => ({
       price_data: {
-        currency: currency,
+        currency: 'thb',
         product_data: {
           name: item.name,
+          images: [item.image]
         },
-        unit_amount: item.price * 100,
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
 
-    line_items.push({
-      price_data: {
-        currency: currency,
-        product_data: {
-          name: "Delivery Charges",
-        },
-        unit_amount: deliveryCharge * 100,
-      },
-      quantity: 1,
-    });
-
+    // สร้าง Stripe session
     const session = await stripe.checkout.sessions.create({
-      success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
-      line_items,
-      mode: "payment",
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/cart?success=true`,
+      cancel_url: `${process.env.FRONTEND_URL}/cart?success=false`,
+      shipping_address_collection: {
+        allowed_countries: ['TH'],
+      },
+      metadata: {
+        userId,
+        address: JSON.stringify(address)
+      }
     });
 
-    res.json({ success: true, session_url: session.url });
+    // บันทึก order
+    const newOrder = new orderModel({
+      userId,
+      items,
+      totalAmount: amount,
+      address,
+      paymentMethod: 'Stripe',
+      paymentStatus: false,
+      orderStatus: 'Pending',
+      sessionId: session.id,
+      orderDate: new Date()
+    });
+
+    await newOrder.save();
+
+    res.status(200).json({
+      success: true,
+      session_url: session.url
+    });
+
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error('Stripe checkout error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
-
 // Verify Stripe
 const verifyStripe = async (req, res) => {
-  const { orderId, success, userId } = req.body;
-
   try {
-    if (success === "true") {
-      await orderModel.findByIdAndUpdate(orderId, {
-        payment: true,
-        status: "Paid",
-      });
+    const { sessionId } = req.body;
+    const userId = req.client.id;
+    
+    // ตรวจสอบ session กับ Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    if (session.payment_status === 'paid') {
+      // อัพเดทสถานะการชำระเงินใน order
+      const order = await orderModel.findOneAndUpdate(
+        { sessionId },
+        {
+          paymentStatus: true,
+          orderStatus: 'Processing'
+        },
+        { new: true }
+      );
 
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // ล้างตะกร้าของ user
       await userModel.findByIdAndUpdate(userId, { cartData: {} });
-      
-      res.json({ success: true });
+
+      res.json({ 
+        success: true,
+        message: 'Payment verified successfully'
+      });
     } else {
-      await orderModel.findByIdAndDelete(orderId);
-      res.json({ success: false });
+      // กรณีชำระเงินไม่สำเร็จ: เก็บ order ไว้และอัพเดทสถานะ
+      await orderModel.findOneAndUpdate(
+        { sessionId },
+        {
+          paymentStatus: false,
+          orderStatus: 'Payment Failed',
+          paymentFailedAt: new Date() // เพิ่มเวลาที่ชำระเงินไม่สำเร็จ
+        }
+      );
+      
+      res.json({ 
+        success: false,
+        message: 'Payment not completed'
+      });
     }
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error('Verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
