@@ -32,6 +32,11 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, required: true },
   paymentStatus: { type: Boolean, required: true, default: false },
   orderDate: { type: Date, required: true },
+  shippingFee: { 
+    type: Number, 
+    required: true,
+    default: 30 
+  },
 });
 
 const orderModel =

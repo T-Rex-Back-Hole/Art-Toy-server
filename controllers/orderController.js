@@ -11,76 +11,74 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, cartItems, totalAmount, addressInfo } = req.body;
-    const { origin } = req.headers;
+    const { items, amount, address } = req.body;
+    const userId = req.client.id; // ดึง userId จาก token
 
-    // ตรวจสอบว่า address ถูกกรอกมาไหม
-    if (
-      !addressInfo ||
-      !addressInfo.address ||
-      !addressInfo.phone ||
-      !addressInfo.city ||
-      !addressInfo.zipcode
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Address is incomplete.",
-      });
-    }
-
-    // เตรียมข้อมูลสำหรับการสร้างคำสั่งซื้อใหม่
-    const orderData = {
-      userId,
-      cartItems, // ใช้ cartItems ที่ส่งมา
-      totalAmount, // ใช้ totalAmount ที่ส่งมา
-      addressInfo, // ใช้ addressInfo ที่ส่งมา
-      orderStatus: "Pending", // ตั้งค่าเริ่มต้นว่า "Pending"
-      paymentMethod: "Stripe", // กำหนดเป็น Stripe
-      paymentStatus: false, // กำหนดสถานะการชำระเงินเป็น false
-      orderDate: Date.now(), // ใช้เวลาปัจจุบัน
-    };
-
-    // สร้าง order ใหม่
-    const newOrder = new orderModel(orderData);
-    await newOrder.save();
-
-    // เตรียมข้อมูลสำหรับการสร้าง session ใน Stripe
-    const line_items = cartItems.map((item) => ({
+    // สร้าง line items สำหรับ Stripe
+    const lineItems = items.map((item) => ({
       price_data: {
-        currency: currency,
+        currency: 'thb',
         product_data: {
-          name: item.name, // ใช้ name ของสินค้า
+          name: item.name,
+          images: [item.image]
         },
-        unit_amount: item.price * 30, // ราคาเป็นเซ็นต์
+        unit_amount: Math.round(item.price * 100), // แปลงเป็นสตางค์
       },
       quantity: item.quantity,
     }));
 
-    // เพิ่มค่าจัดส่ง
-    line_items.push({
+    // เพิ่ม line item สำหรับค่าจัดส่ง
+    lineItems.push({
       price_data: {
-        currency: currency,
+        currency: 'thb',
         product_data: {
-          name: "Delivery Charges",
+          name: 'Shipping Fee',
+          description: 'Standard Delivery'
         },
-        unit_amount: deliveryCharge * 30, // ค่าจัดส่ง
+        unit_amount: deliveryCharge * 100, // แปลง 30 บาทเป็นสตางค์
       },
-      quantity: 1,
+      quantity: 1
     });
 
-    // สร้าง session ใน Stripe
+    // สร้าง Stripe session
     const session = await stripe.checkout.sessions.create({
-      success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
-      line_items,
-      mode: "payment",
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/cart?success=true`,
+      cancel_url: `${process.env.FRONTEND_URL}/cart?success=false`,
+      shipping_address_collection: {
+        allowed_countries: ['TH'],
+      }
     });
 
-    // ส่งผลลัพธ์
-    res.json({ success: true, session_url: session.url });
+    // บันทึก order
+    const newOrder = new orderModel({
+      userId,
+      items,
+      totalAmount: amount + deliveryCharge,
+      shippingFee: deliveryCharge,
+      address,
+      paymentMethod: 'Stripe',
+      paymentStatus: false,
+      orderStatus: 'Pending',
+      sessionId: session.id,
+      orderDate: new Date()
+    });
+
+    await newOrder.save();
+
+    res.status(200).json({
+      success: true,
+      session_url: session.url
+    });
+
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error('Stripe checkout error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
@@ -90,10 +88,10 @@ const verifyStripe = async (req, res) => {
 
   try {
     if (success === "true") {
-      // อัปเดตสถานะคำสั่งซื้อและสถานะการชำระเงิน
+      // อัปเดตสถานคำสั่งซื้อและสถานะการชำระเงิน
       await orderModel.findByIdAndUpdate(orderId, {
         paymentStatus: true, // การชำระเงินสำเร็จ
-        orderStatus: "Paid", // สถานะคำสั่งซื้อเป็น "Paid"
+        orderStatus: "Paid", // ���ถานะคำสั่งซื้อเป็น "Paid"
       });
 
       // รีเซ็ท cart ของผู้ใช้
@@ -105,8 +103,11 @@ const verifyStripe = async (req, res) => {
       res.json({ success: false });
     }
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error('Verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
