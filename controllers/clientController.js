@@ -10,7 +10,7 @@ export const registerClient = async (req, res) => {
     if (!userName || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields"
+        message: "Please provide all required fields",
       });
     }
 
@@ -18,7 +18,7 @@ export const registerClient = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists"
+        message: "Email already exists",
       });
     }
 
@@ -28,7 +28,7 @@ export const registerClient = async (req, res) => {
       userName,
       email,
       password: hashedPassword,
-      role: "user"
+      role: "user",
     });
 
     await newUser.save();
@@ -39,16 +39,15 @@ export const registerClient = async (req, res) => {
       user: {
         id: newUser._id,
         userName: newUser.userName,
-        email: newUser.email
-      }
+        email: newUser.email,
+      },
     });
-
   } catch (error) {
     console.error("Registration error:", error);
     return res.status(500).json({
       success: false,
       message: "Registration failed",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -56,46 +55,46 @@ export const registerClient = async (req, res) => {
 export const loginClient = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt:', { email });
+    console.log("Login attempt:", { email });
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please enter email and password"
+        message: "Please enter email and password",
       });
     }
 
     const client = await User.findOne({ email });
-    console.log('Found client:', client ? 'Yes' : 'No');
+    console.log("Found client:", client ? "Yes" : "No");
 
     if (!client) {
       return res.status(400).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     const isMatch = await bcrypt.compare(password, client.password);
-    console.log('Password match:', isMatch);
+    console.log("Password match:", isMatch);
 
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid password"
+        message: "Invalid password",
       });
     }
 
     const token = jwt.sign(
-      { 
+      {
         id: client._id,
         email: client.email,
-        userName: client.userName
+        userName: client.userName,
       },
       process.env.CLIENT_SECRET_KEY,
       { expiresIn: "60m" }
     );
 
-    console.log('Token generated successfully');
+    console.log("Token generated successfully");
 
     return res.status(200).json({
       success: true,
@@ -104,16 +103,15 @@ export const loginClient = async (req, res) => {
       userData: {
         id: client._id,
         userName: client.userName,
-        email: client.email
-      }
+        email: client.email,
+      },
     });
-
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return res.status(500).json({
       success: false,
       message: "An error occurred during login",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -121,15 +119,15 @@ export const loginClient = async (req, res) => {
 export const logoutClient = (req, res) => {
   try {
     res.clearCookie("token");
-    return res.status(200).json({ 
-      success: true, 
-      message: "Logout successful"
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful .😎 😎 😎",
     });
   } catch (error) {
     console.error("Logout error:", error);
     return res.status(500).json({
       success: false,
-      message: "Error logging out"
+      message: "Error logging out",
     });
   }
 };
@@ -137,12 +135,12 @@ export const logoutClient = (req, res) => {
 export const getClientProfile = async (req, res) => {
   try {
     const userID = req.client.id;
-    const user = await User.findById(userID).select('-password');
+    const user = await User.findById(userID).select("-password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -150,14 +148,14 @@ export const getClientProfile = async (req, res) => {
       success: true,
       userData: {
         userName: user.userName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching user profile"
+      message: "Error fetching user profile",
     });
   }
 };
@@ -170,7 +168,7 @@ export const changePassword = async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: "Please provide current and new password"
+        message: "Please provide current and new password",
       });
     }
 
@@ -178,7 +176,7 @@ export const changePassword = async (req, res) => {
     if (!client) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -186,7 +184,7 @@ export const changePassword = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Current password is incorrect"
+        message: "Current password is incorrect",
       });
     }
 
@@ -196,16 +194,14 @@ export const changePassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Password changed successfully"
+      message: "Password changed successfully",
     });
-
   } catch (error) {
     console.error("Change password error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to change password",
-      error: error.message
+      error: error.message,
     });
   }
 };
-

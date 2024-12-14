@@ -1,71 +1,83 @@
 import orderModel from "../models/order.js";
-import userModel from "../models/user.js";
+import User from "../models/user.js";
 import Stripe from "stripe";
 
 // global variables
 const currency = "thb";
-const deliveryCharge = 10;
+const deliveryCharge = 30;
 
 // gateway initialize
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Placing orders using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
-    const { items, amount, address } = req.body;
-    const userId = req.client.id;
+    const { userId, cartItems, totalAmount, addressInfo } = req.body;
+    const { origin } = req.headers;
 
-    console.log('Creating order with:', { items, amount, address, userId });
+    // ตรวจสอบว่า address ถูกกรอกมาไหม
+    if (
+      !addressInfo ||
+      !addressInfo.address ||
+      !addressInfo.phone ||
+      !addressInfo.city ||
+      !addressInfo.zipcode
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Address is incomplete.",
+      });
+    }
 
-    // สร้าง line items สำหรับ Stripe
-    const lineItems = items.map((item) => ({
+    // เตรียมข้อมูลสำหรับการสร้างคำสั่งซื้อใหม่
+    const orderData = {
+      userId,
+      cartItems, // ใช้ cartItems ที่ส่งมา
+      totalAmount, // ใช้ totalAmount ที่ส่งมา
+      addressInfo, // ใช้ addressInfo ที่ส่งมา
+      orderStatus: "Pending", // ตั้งค่าเริ่มต้นว่า "Pending"
+      paymentMethod: "Stripe", // กำหนดเป็น Stripe
+      paymentStatus: false, // กำหนดสถานะการชำระเงินเป็น false
+      orderDate: Date.now(), // ใช้เวลาปัจจุบัน
+    };
+
+    // สร้าง order ใหม่
+    const newOrder = new orderModel(orderData);
+    await newOrder.save();
+
+    // เตรียมข้อมูลสำหรับการสร้าง session ใน Stripe
+    const line_items = cartItems.map((item) => ({
       price_data: {
         currency: 'thb',
         product_data: {
-          name: item.name,
-          images: [item.image]
+          name: item.name, // ใช้ name ของสินค้า
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: item.price * 30, // ราคาเป็นเซ็นต์
       },
       quantity: item.quantity,
     }));
 
-    // สร้าง Stripe session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/cart?success=true`,
-      cancel_url: `${process.env.FRONTEND_URL}/cart?success=false`,
-      shipping_address_collection: {
-        allowed_countries: ['TH'],
+    // เพิ่มค่าจัดส่ง
+    line_items.push({
+      price_data: {
+        currency: currency,
+        product_data: {
+          name: "Delivery Charges",
+        },
+        unit_amount: deliveryCharge * 30, // ค่าจัดส่ง
       },
-      metadata: {
-        userId,
-        address: JSON.stringify(address)
-      }
+      quantity: 1,
     });
 
-    // บันทึก order
-    const newOrder = new orderModel({
-      userId,
-      items,
-      totalAmount: amount,
-      address,
-      paymentMethod: 'Stripe',
-      paymentStatus: false,
-      orderStatus: 'Pending',
-      sessionId: session.id,
-      orderDate: new Date()
+    // สร้าง session ใน Stripe
+    const session = await stripe.checkout.sessions.create({
+      success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
+      cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
+      line_items,
+      mode: "payment",
     });
 
-    await newOrder.save();
-
-    res.status(200).json({
-      success: true,
-      session_url: session.url
-    });
-
+    // ส่งผลลัพธ์
+    res.json({ success: true, session_url: session.url });
   } catch (error) {
     console.error('Stripe checkout error:', error);
     res.status(500).json({
@@ -77,50 +89,23 @@ const placeOrderStripe = async (req, res) => {
 
 // Verify Stripe
 const verifyStripe = async (req, res) => {
+  const { orderId, success, userId } = req.body;
+
   try {
-    const { sessionId } = req.body;
-    const userId = req.client.id;
-    
-    // ตรวจสอบ session กับ Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    if (session.payment_status === 'paid') {
-      // อัพเดทสถานะการชำระเงินใน order
-      const order = await orderModel.findOneAndUpdate(
-        { sessionId },
-        {
-          paymentStatus: true,
-          orderStatus: 'Processing'
-        },
-        { new: true }
-      );
-
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      // ล้างตะกร้าของ user
-      await userModel.findByIdAndUpdate(userId, { cartData: {} });
-
-      res.json({ 
-        success: true,
-        message: 'Payment verified successfully'
+    if (success === "true") {
+      // อัปเดตสถานะคำสั่งซื้อและสถานะการชำระเงิน
+      await orderModel.findByIdAndUpdate(orderId, {
+        paymentStatus: true, // การชำระเงินสำเร็จ
+        orderStatus: "Paid", // สถานะคำสั่งซื้อเป็น "Paid"
       });
+
+      // รีเซ็ท cart ของผู้ใช้
+      await User.findByIdAndUpdate(userId, { cartData: {} });
+
+      res.json({ success: true });
     } else {
-      // กรณีชำระเงินไม่สำเร็จ: เก็บ order ไว้และอัพเดทสถานะ
-      await orderModel.findOneAndUpdate(
-        { sessionId },
-        {
-          paymentStatus: false,
-          orderStatus: 'Payment Failed',
-          paymentFailedAt: new Date() // เพิ่มเวลาที่ชำระเงินไม่สำเร็จ
-        }
-      );
-      
-      res.json({ 
-        success: false,
-        message: 'Payment not completed'
-      });
+      await orderModel.findByIdAndDelete(orderId); // หากไม่สำเร็จ ลบคำสั่งซื้อนั้น
+      res.json({ success: false });
     }
   } catch (error) {
     console.error('Verification error:', error);
@@ -158,7 +143,7 @@ const userOrders = async (req, res) => {
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
-    await orderModel.findByIdAndUpdate(orderId, { status });
+    await orderModel.findByIdAndUpdate(orderId, { orderStatus: status }); // ใช้ `orderStatus` ในการอัปเดต
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.log(error);
