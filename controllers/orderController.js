@@ -45,14 +45,14 @@ const placeOrderStripe = async (req, res) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/cart?success=true`,
+      success_url: `${process.env.FRONTEND_URL}/cart?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cart?success=false`,
       shipping_address_collection: {
         allowed_countries: ['TH'],
       }
     });
 
-    // บันทึก order
+    // บันทึกข้อมูลออเดอร์
     const newOrder = new orderModel({
       userId,
       items,
@@ -84,29 +84,49 @@ const placeOrderStripe = async (req, res) => {
 
 // Verify Stripe
 const verifyStripe = async (req, res) => {
-  const { orderId, success, userId } = req.body;
+  const { sessionId } = req.body;
 
   try {
-    if (success === "true") {
-      // อัปเดตสถานคำสั่งซื้อและสถานะการชำระเงิน
-      await orderModel.findByIdAndUpdate(orderId, {
-        paymentStatus: true, // การชำระเงินสำเร็จ
-        orderStatus: "Paid", // ���ถานะคำสั่งซื้อเป็น "Paid"
+    // ตรวจสอบ session กับ Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    if (session.payment_status === 'paid') {
+      // ค้นหา order ด้วย sessionId
+      const order = await orderModel.findOne({ sessionId });
+      
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found"
+        });
+      }
+
+      // อัปเดตสถานะการชำระเงินและออเดอร์
+      await orderModel.findByIdAndUpdate(order._id, {
+        paymentStatus: true,
+        orderStatus: "Paid"
       });
 
       // รีเซ็ท cart ของผู้ใช้
-      await User.findByIdAndUpdate(userId, { cartData: {} });
+      await User.findByIdAndUpdate(order.userId, { cartData: {} });
 
-      res.json({ success: true });
+      return res.json({ 
+        success: true,
+        message: "Payment verified successfully"
+      });
+
     } else {
-      await orderModel.findByIdAndDelete(orderId); // หากไม่สำเร็จ ลบคำสั่งซื้อนั้น
-      res.json({ success: false });
+      return res.status(400).json({
+        success: false,
+        message: "Payment not completed"
+      });
     }
+
   } catch (error) {
     console.error('Verification error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || "Error verifying payment"
     });
   }
 };
