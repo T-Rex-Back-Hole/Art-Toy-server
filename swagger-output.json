@@ -2,18 +2,17 @@
   "swagger": "2.0",
   "info": {
     "title": "T-Rex API",
-    "description": "Automatically generated Swagger doc",
+    "description": "Automatically generated Swagger doc with organized tags",
     "version": "1.0.0"
   },
   "host": "localhost:5000",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/client/register": {
       "post": {
-        "description": "",
+        "tags": ["Client Authentication"],
+        "description": "Register a new client account",
         "parameters": [
           {
             "name": "body",
@@ -49,7 +48,8 @@
     },
     "/client/login": {
       "post": {
-        "description": "",
+        "tags": ["Client Authentication"],
+        "description": "Client login",
         "parameters": [
           {
             "name": "body",
@@ -82,7 +82,8 @@
     },
     "/client/logout": {
       "post": {
-        "description": "",
+        "tags": ["Client Authentication"],
+        "description": "Client logout",
         "responses": {
           "200": {
             "description": "OK"
@@ -95,7 +96,8 @@
     },
     "/client/profile": {
       "get": {
-        "description": "",
+        "tags": ["Client Profile"],
+        "description": "Retrieve client profile information",
         "parameters": [
           {
             "name": "authorization",
@@ -121,7 +123,8 @@
     },
     "/client/change-password": {
       "post": {
-        "description": "",
+        "tags": ["Client Profile"],
+        "description": "Change client account password",
         "parameters": [
           {
             "name": "authorization",
@@ -165,7 +168,8 @@
     },
     "/products": {
       "get": {
-        "description": "",
+        "tags": ["Product Management"],
+        "description": "Retrieve list of all products",
         "responses": {
           "200": {
             "description": "OK"
@@ -175,7 +179,8 @@
     },
     "/{productId}": {
       "get": {
-        "description": "",
+        "tags": ["Product Management"],
+        "description": "Retrieve details of a specific product",
         "parameters": [
           {
             "name": "productId",
@@ -193,7 +198,8 @@
     },
     "/cart/get": {
       "get": {
-        "description": "",
+        "tags": ["Cart Management"],
+        "description": "Retrieve user's cart contents",
         "parameters": [
           {
             "name": "authorization",
@@ -219,7 +225,8 @@
     },
     "/cart/add": {
       "post": {
-        "description": "",
+        "tags": ["Cart Management"],
+        "description": "Add item to cart",
         "parameters": [
           {
             "name": "authorization",
@@ -251,7 +258,8 @@
     },
     "/cart/update": {
       "post": {
-        "description": "",
+        "tags": ["Cart Management"],
+        "description": "Update cart item quantity",
         "parameters": [
           {
             "name": "authorization",
@@ -289,7 +297,8 @@
     },
     "/cart/removeItem": {
       "delete": {
-        "description": "",
+        "tags": ["Cart Management"],
+        "description": "Remove a specific item from cart",
         "parameters": [
           {
             "name": "authorization",
@@ -320,7 +329,8 @@
     },
     "/cart/removeAllItem": {
       "delete": {
-        "description": "",
+        "tags": ["Cart Management"],
+        "description": "Remove all items from cart",
         "parameters": [
           {
             "name": "authorization",
@@ -346,7 +356,8 @@
     },
     "/order/stripe": {
       "post": {
-        "description": "",
+        "tags": ["Order Processing"],
+        "description": "Process Stripe payment",
         "parameters": [
           {
             "name": "authorization",
@@ -395,7 +406,8 @@
     },
     "/order/userorders": {
       "post": {
-        "description": "",
+        "tags": ["Order Processing"],
+        "description": "Retrieve user's order history",
         "parameters": [
           {
             "name": "authorization",
@@ -427,7 +439,8 @@
     },
     "/order/verifyStripe": {
       "post": {
-        "description": "",
+        "tags": ["Order Processing"],
+        "description": "Verify Stripe payment",
         "parameters": [
           {
             "name": "authorization",
@@ -465,7 +478,8 @@
     },
     "/api/auth/register": {
       "post": {
-        "description": "",
+        "tags": ["Alternative Authentication"],
+        "description": "Alternative user registration",
         "parameters": [
           {
             "name": "body",
@@ -498,7 +512,8 @@
     },
     "/api/auth/login": {
       "post": {
-        "description": "",
+        "tags": ["Alternative Authentication"],
+        "description": "Alternative user login",
         "parameters": [
           {
             "name": "body",
@@ -528,7 +543,8 @@
     },
     "/api/auth/logout": {
       "post": {
-        "description": "",
+        "tags": ["Alternative Authentication"],
+        "description": "Alternative logout",
         "responses": {
           "default": {
             "description": ""
@@ -538,7 +554,8 @@
     },
     "/api/auth/check-auth": {
       "get": {
-        "description": "",
+        "tags": ["Alternative Authentication"],
+        "description": "Check authentication status",
         "parameters": [
           {
             "name": "authorization",
@@ -558,17 +575,22 @@
     },
     "/api/admin/products/upload-image": {
       "post": {
-        "description": "",
+        "tags": ["Admin Product Management"],
+        "description": "Upload product image",
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     },
-    "/api/admin/products/add": {
+    "/api/admin/products": {
       "post": {
-        "description": "",
+        "tags": ["Admin Product Management"],
+        "description": "Create a new product",
         "parameters": [
           {
             "name": "body",
@@ -579,22 +601,10 @@
                 "name": {
                   "example": "any"
                 },
-                "price": {
-                  "example": "any"
-                },
-                "image": {
-                  "example": "any"
-                },
-                "category": {
-                  "example": "any"
-                },
-                "materials": {
-                  "example": "any"
-                },
-                "product_type": {
-                  "example": "any"
-                },
                 "description": {
+                  "example": "any"
+                },
+                "price": {
                   "example": "any"
                 }
               }
@@ -605,21 +615,22 @@
           "201": {
             "description": "Created"
           },
-          "500": {
-            "description": "Internal Server Error"
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
     },
     "/api/admin/products/edit/{id}": {
       "put": {
-        "description": "",
+        "tags": ["Admin Product Management"],
+        "description": "Edit an existing product",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "type": "string"
+            "type": "string",
+            "required": true
           },
           {
             "name": "body",
@@ -630,22 +641,10 @@
                 "name": {
                   "example": "any"
                 },
-                "price": {
-                  "example": "any"
-                },
-                "image": {
-                  "example": "any"
-                },
-                "category": {
-                  "example": "any"
-                },
-                "materials": {
-                  "example": "any"
-                },
-                "product_type": {
-                  "example": "any"
-                },
                 "description": {
+                  "example": "any"
+                },
+                "price": {
                   "example": "any"
                 }
               }
@@ -658,16 +657,14 @@
           },
           "404": {
             "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/admin/products/delete/{id}": {
       "delete": {
-        "description": "",
+        "tags": ["Admin Product Management"],
+        "description": "Delete product",
         "parameters": [
           {
             "name": "id",
@@ -691,7 +688,8 @@
     },
     "/api/admin/products/get": {
       "get": {
-        "description": "",
+        "tags": ["Admin Product Management"],
+        "description": "Retrieve all products (admin view)",
         "responses": {
           "200": {
             "description": "OK"
@@ -704,7 +702,8 @@
     },
     "/api/admin/orders/get": {
       "get": {
-        "description": "",
+        "tags": ["Admin Order Management"],
+        "description": "Retrieve all orders",
         "responses": {
           "200": {
             "description": "OK"
@@ -720,7 +719,8 @@
     },
     "/api/admin/orders/details/{id}": {
       "get": {
-        "description": "",
+        "tags": ["Admin Order Management"],
+        "description": "Get order details by ID",
         "parameters": [
           {
             "name": "id",
@@ -744,7 +744,8 @@
     },
     "/api/admin/orders/update/{id}": {
       "put": {
-        "description": "",
+        "tags": ["Admin Order Management"],
+        "description": "Update order status",
         "parameters": [
           {
             "name": "id",
@@ -778,5 +779,39 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Client Authentication",
+      "description": "Endpoints for client registration, login, and logout"
+    },
+    {
+      "name": "Client Profile",
+      "description": "Endpoints for managing client profile and password"
+    },
+    {
+      "name": "Product Management",
+      "description": "Endpoints for retrieving product information"
+    },
+    {
+      "name": "Cart Management",
+      "description": "Endpoints for managing user's shopping cart"
+    },
+    {
+      "name": "Order Processing",
+      "description": "Endpoints for processing orders and payments"
+    },
+    {
+      "name": "Alternative Authentication",
+      "description": "Additional authentication endpoints"
+    },
+    {
+      "name": "Admin Product Management",
+      "description": "Endpoints for admin to manage products"
+    },
+    {
+      "name": "Admin Order Management",
+      "description": "Endpoints for admin to manage orders"
+    }
+  ]
 }
